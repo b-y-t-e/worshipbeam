@@ -59,6 +59,7 @@ public sealed class PowerPointExporter : ISlideExporter
 
     private const int MsoTrue = -1;
     private const int MsoFalse = 0;
+    private const int MsoAutomationSecurityForceDisable = 3;
 
     [SupportedOSPlatform("windows")]
     private static void Export(string path, string outDir, int width, IProgress<string> progress)
@@ -68,8 +69,12 @@ public sealed class PowerPointExporter : ISlideExporter
         progress.Report(Tr.T("Uruchamianie PowerPointa…"));
         dynamic app = Activator.CreateInstance(type)!;
         dynamic? presentation = null;
+        // makra (.pptm, .ppsm) wyłączone — automatyzacja domyślnie je dopuszcza; PowerPoint może być już otwarty, więc przywracamy
+        int? security = null;
         try
         {
+            security = (int)app.AutomationSecurity;
+            app.AutomationSecurity = MsoAutomationSecurityForceDisable;
             // tylko do odczytu, bez tytułu, bez okna
             presentation = app.Presentations.Open(Path.GetFullPath(path), MsoTrue, MsoFalse, MsoFalse);
             double slideWidth = presentation.PageSetup.SlideWidth;
@@ -98,6 +103,8 @@ public sealed class PowerPointExporter : ISlideExporter
             // PowerPoint mógł być już otwarty przez użytkownika — zamykamy go tylko, gdy nic w nim nie zostało.
             try
             {
+                if (security is { } previous)
+                    app.AutomationSecurity = previous;
                 if ((int)app.Presentations.Count == 0)
                     app.Quit();
             }

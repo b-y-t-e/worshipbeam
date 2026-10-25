@@ -5,7 +5,8 @@ namespace Uwielbienia.Link;
 /// <summary>Kto (urządzenie z sesją połączenia) o to prosi i co mu wolno.</summary>
 /// <param name="CanAddSongs">Operator pozwolił temu urządzeniu dodawać pieśni do planu.</param>
 /// <param name="IsPanel">Panel (drugi komputer, tablet): plany, plan, układ pieśni i ekran — wszystko jak w oknie operatora.</param>
-public sealed record RemoteCaller(bool CanAddSongs = false, bool IsPanel = false)
+/// <param name="DeviceKey">Klucz urządzenia (<c>ILinkPeer.Key</c>) — np. „Cofnij” tylko własnego dodania.</param>
+public sealed record RemoteCaller(bool CanAddSongs = false, bool IsPanel = false, string? DeviceKey = null)
 {
     /// <summary>Zwykły telefon: tylko zmienia slajdy (domyślnie każde urządzenie).</summary>
     public static readonly RemoteCaller Pilot = new();
@@ -35,8 +36,8 @@ public static class DevicePermissionsExtensions
 {
     public static RemoteCaller CallerFor(this IDevicePermissions permissions, string deviceKey) =>
         permissions.Has(deviceKey, DevicePermission.Panel)
-            ? RemoteCaller.Panel
-            : new RemoteCaller(CanAddSongs: permissions.Has(deviceKey, DevicePermission.AddSongs));
+            ? RemoteCaller.Panel with { DeviceKey = deviceKey }
+            : new RemoteCaller(CanAddSongs: permissions.Has(deviceKey, DevicePermission.AddSongs), DeviceKey: deviceKey);
 
     public static bool CanAddSongs(this IDevicePermissions permissions, string deviceKey) =>
         permissions.Has(deviceKey, DevicePermission.AddSongs);

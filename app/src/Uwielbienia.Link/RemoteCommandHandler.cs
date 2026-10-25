@@ -155,9 +155,9 @@ public sealed class RemoteCommandHandler(
             case "addNext" or "undoAdd" when !caller.CanAddSongs:
                 return new CommandReply(false, Tr.T("To urządzenie nie może dodawać pieśni."));
             case "addNext":
-                return AddNext(command.SongId);
+                return AddNext(command.SongId, caller.DeviceKey);
             case "undoAdd" when command.ItemId is { } added:
-                return UndoAdd(added);
+                return UndoAdd(added, caller.DeviceKey);
             case "videoToggle" when video is not null:
                 video.TogglePause();
                 return new CommandReply(true, Video: CurrentVideo());
@@ -201,23 +201,23 @@ public sealed class RemoteCommandHandler(
     }
 
     /// <summary>Pieśń lub tekst zaraz za pozycją na ekranie (na koniec, gdy ekran pokazuje coś spoza planu).</summary>
-    private CommandReply AddNext(string? songId)
+    private CommandReply AddNext(string? songId, string? device)
     {
         if (plan.Plan is null)
             return new CommandReply(false, "W aplikacji nie ma otwartego planu.");
         if (songId is null || library.Find(songId) is not { } song)
             return new CommandReply(false, Tr.T("Nie ma takiej pieśni."));
         var item = actions.AddAfterLive(song, select: false);
-        _undoable.Add(item.Id);
+        _undoable.Add(item.Id, device);
         _itemAdded?.Invoke(this, item);
         return new CommandReply(true, Added: new PlanItemMessage(item.Id, song.Id, song.Number, song.DisplayTitle,
             song.IsText ? "text" : "song"));
     }
 
     /// <summary>„Cofnij” po dodaniu: tylko własne dodanie z telefonu i tylko póki pieśni nie pokazano.</summary>
-    private CommandReply UndoAdd(Guid itemId)
+    private CommandReply UndoAdd(Guid itemId, string? device)
     {
-        if (!_undoable.TryTake(itemId))
+        if (!_undoable.TryTake(itemId, device))
             return new CommandReply(false, Tr.T("Tej pieśni nie da się już cofnąć."));
         if (plan.Plan?.IndexOf(itemId) is not >= 0)
             return new CommandReply(false, Tr.T("Tej pieśni nie ma już w planie."));

@@ -190,7 +190,7 @@ public sealed class PanelCommandsTests : IDisposable
     {
         var folder = Path.Combine(_temp, "polaczenia");
         var permissions = new DevicePermissions(folder);
-        Assert.Equal(RemoteCaller.Pilot, permissions.CallerFor("klucz"));
+        Assert.Equal(RemoteCaller.Pilot with { DeviceKey = "klucz" }, permissions.CallerFor("klucz"));
         permissions.Set("klucz", DevicePermission.Panel, true);
         var caller = new DevicePermissions(folder).CallerFor("klucz");
         Assert.True(caller.IsPanel);

@@ -34,7 +34,7 @@ public sealed class RemoteCommandHandlerTests : IDisposable
     private async Task<JsonElement> Send(string json, RemoteCaller? caller = null) =>
         JsonDocument.Parse(await _handler.HandleAsync(Encoding.UTF8.GetBytes(json), caller)).RootElement;
 
-    private static readonly RemoteCaller Musician = new(CanAddSongs: true);
+    private static readonly RemoteCaller Musician = new(CanAddSongs: true, DeviceKey: "gitara");
 
     private static string Id(int number) => Library.Songs.First(s => s.Number == number).Id;
 
@@ -85,6 +85,16 @@ public sealed class RemoteCommandHandlerTests : IDisposable
         Assert.False((await Send($$"""{"cmd":"undoAdd","itemId":"{{foreign}}"}""", Musician)).GetProperty("ok").GetBoolean());
         Assert.True((await Send($$"""{"cmd":"undoAdd","itemId":"{{added}}"}""", Musician)).GetProperty("ok").GetBoolean());
         Assert.Equal([47, 94], Numbers());
+    }
+
+    [Fact]
+    public async Task Undo_refuses_a_song_added_by_another_device()
+    {
+        var added = (await AddNext(36, Musician)).GetProperty("added").GetProperty("id").GetGuid();
+        var other = new RemoteCaller(CanAddSongs: true, DeviceKey: "skrzypce");
+
+        Assert.False((await Send($$"""{"cmd":"undoAdd","itemId":"{{added}}"}""", other)).GetProperty("ok").GetBoolean());
+        Assert.True((await Send($$"""{"cmd":"undoAdd","itemId":"{{added}}"}""", Musician)).GetProperty("ok").GetBoolean());
     }
 
     [Fact]

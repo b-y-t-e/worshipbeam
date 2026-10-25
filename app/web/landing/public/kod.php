@@ -10,6 +10,7 @@ const ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789'; // bez i, l, o, 0, 1 — nie
 const LENGTH = 5;
 const MAX_CODES = 200;          // naraz
 const MAX_FAILURES = 20;        // nieudanych odczytów z jednego adresu na LIFETIME
+const MAX_CREATED = 10;         // nowych kodów z jednego adresu na LIFETIME — jeden adres nie wyczerpie MAX_CODES
 
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-store');
@@ -28,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $long = trim(file_get_contents('php://input', false, null, 0, 4097));
     if ($long === '' || strlen($long) > 4096 || !preg_match('/^[A-Za-z0-9_.\-~]+$/', $long)) fail(400, 'code');
+    $sender = $dir . DIRECTORY_SEPARATOR . 'post-' . md5($_SERVER['REMOTE_ADDR'] ?? '');
+    $created = is_file($sender) ? (int)file_get_contents($sender) : 0;
+    if ($created >= MAX_CREATED) fail(429, 'limit');
     if (count(glob($dir . DIRECTORY_SEPARATOR . 'c-*') ?: []) >= MAX_CODES) fail(503, 'busy');
     for ($attempt = 0; $attempt < 20; $attempt++) {
         $short = '';
@@ -36,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($handle) {
             fwrite($handle, $long);
             fclose($handle);
+            file_put_contents($sender, (string)($created + 1)); // mtime = ostatni kod; limit mija po LIFETIME
             echo $short;
             exit;
         }

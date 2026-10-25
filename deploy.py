@@ -14,7 +14,7 @@ Gdy po wypchnięciu tagu nie uda się utworzyć release'u, `python deploy.py --g
 z plików w release/ (pliki już wysłane pomija).
 
 Dane ze zmiennych środowiskowych albo z pliku .env w głównym folderze (KLUCZ=wartość w wierszu;
-plik jest w .gitignore): FTP_HOST, FTP_USER, FTP_PASS (opcjonalnie FTP_DIR) oraz GITHUB_TOKEN
+plik jest w .gitignore): FTP_HOST, FTP_USER, FTP_PASS, FTP_CERT_SHA256 (opcjonalnie FTP_DIR) oraz GITHUB_TOKEN
 (token z uprawnieniem Contents: write do repozytorium).
 
 Użycie:
@@ -26,9 +26,11 @@ Użycie:
 """
 import argparse
 import ftplib
+import hashlib
 import json
 import os
 import re
+import ssl
 import subprocess
 import sys
 import urllib.error
@@ -88,17 +90,47 @@ def bump_version() -> str:
 
 
 def require_ftp_settings() -> None:
-    missing = [k for k in ("FTP_HOST", "FTP_USER", "FTP_PASS") if not os.environ.get(k)]
+    missing = [k for k in ("FTP_HOST", "FTP_USER", "FTP_PASS", "FTP_CERT_SHA256") if not os.environ.get(k)]
     if missing:
         sys.exit(f"Brak danych FTP: {', '.join(missing)} — ustaw zmienne środowiskowe albo utwórz .env "
                  "(albo użyj --no-site).")
 
 
+def certificate_fingerprint(host: str) -> str:
+    """SHA-256 certyfikatu serwera FTP (do wpisania w FTP_CERT_SHA256)."""
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    with ftplib.FTP_TLS(host, timeout=60, context=context) as ftp:
+        ftp.auth()
+        return hashlib.sha256(ftp.sock.getpeercert(binary_form=True)).hexdigest()
+
+
+def connect_ftp() -> ftplib.FTP_TLS:
+    """
+    FTPS (szyfrowane logowanie i pliki). Certyfikat hostingu nie pasuje do adresu IP (i bywa przeterminowany),
+    więc zamiast weryfikacji nazwy przypinamy jego odcisk: inny certyfikat = przerwanie przed wysłaniem hasła.
+    """
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    ftp = ftplib.FTP_TLS(os.environ["FTP_HOST"], timeout=60, context=context)
+    ftp.auth()
+    actual = hashlib.sha256(ftp.sock.getpeercert(binary_form=True)).hexdigest()
+    expected = os.environ["FTP_CERT_SHA256"].strip().lower().replace(":", "")
+    if actual != expected:
+        ftp.close()
+        sys.exit(f"Certyfikat serwera FTP się zmienił (SHA-256 {actual}). Jeśli hosting go odnowił, "
+                 "wpisz nowy odcisk w FTP_CERT_SHA256 w .env.")
+    ftp.login(os.environ["FTP_USER"], os.environ["FTP_PASS"])
+    ftp.prot_p()
+    return ftp
+
+
 def upload_site() -> None:
     target = os.environ.get("FTP_DIR", DEFAULT_FTP_DIR).rstrip("/")
 
-    with ftplib.FTP(os.environ["FTP_HOST"], timeout=60) as ftp:
-        ftp.login(os.environ["FTP_USER"], os.environ["FTP_PASS"])
+    with connect_ftp() as ftp:
         ftp.encoding = "utf-8"
         for file in sorted(p for p in SITE.rglob("*") if p.is_file()):
             relative = file.relative_to(SITE).as_posix()
