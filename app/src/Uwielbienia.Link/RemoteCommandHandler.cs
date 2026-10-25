@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using System.Text.Json;
 using Uwielbienia.Core;
 using Uwielbienia.Core.Kiosks;
@@ -83,7 +84,7 @@ public sealed class RemoteCommandHandler(
         catch (Exception ex)
         {
             errorLog?.Report(ex);
-            return RemoteJson.Serialize(new CommandReply(false, $"Nie udało się: {ex.Message}"));
+            return RemoteJson.Serialize(new CommandReply(false, Tr.F("Nie udało się: {0}", ex.Message)));
         }
     }
 
@@ -105,7 +106,7 @@ public sealed class RemoteCommandHandler(
             : panel is not null && PanelCommands.Handles(command.Cmd)
                 ? caller.IsPanel
                     ? await ExecutePanelAsync(command)
-                    : new CommandReply(false, "To urządzenie nie jest panelem — włącz „Panel” w oknie „Urządzenia” w aplikacji.")
+                    : new CommandReply(false, Tr.T("To urządzenie nie jest panelem — włącz „Panel” w oknie „Urządzenia” w aplikacji."))
             : await dispatcher.InvokeAsync(() => Execute(command, caller));
         // pełny stan po (ponownym) połączeniu — także bieżący element kiosku
         if (command?.Cmd == "hello" && reply.Ok)
@@ -125,10 +126,10 @@ public sealed class RemoteCommandHandler(
     private async Task<CommandReply> ImageAsync(RemoteCommand command)
     {
         if (previews is null || command.Key is null || _imageKeys.FileOf(command.Key) is not { } file)
-            return new CommandReply(false, "Nie ma takiego obrazu.");
+            return new CommandReply(false, Tr.T("Nie ma takiego obrazu."));
         return await previews.DataUrlAsync(file, RemoteImages.WidthFor(command.Width)) is { } image
             ? new CommandReply(true, Image: image)
-            : new CommandReply(false, "Nie udało się odczytać obrazu.");
+            : new CommandReply(false, Tr.T("Nie udało się odczytać obrazu."));
     }
 
     /// <summary>Błąd zapisu (plik zajęty, kopiowanie) wraca do panelu jako komunikat, nie przerywa połączenia.</summary>
@@ -140,7 +141,7 @@ public sealed class RemoteCommandHandler(
         }
         catch (Exception ex) when (FileErrors.IsFileAccess(ex))
         {
-            return new CommandReply(false, $"Nie udało się: {ex.Message}");
+            return new CommandReply(false, Tr.F("Nie udało się: {0}", ex.Message));
         }
     }
 
@@ -152,7 +153,7 @@ public sealed class RemoteCommandHandler(
                 return new CommandReply(true, State: CurrentState(), Plan: CurrentPlan(), Video: CurrentVideo(),
                     Device: DeviceMessage.From(caller), Plans: caller.IsPanel ? CurrentPlans() : null);
             case "addNext" or "undoAdd" when !caller.CanAddSongs:
-                return new CommandReply(false, "To urządzenie nie może dodawać pieśni.");
+                return new CommandReply(false, Tr.T("To urządzenie nie może dodawać pieśni."));
             case "addNext":
                 return AddNext(command.SongId);
             case "undoAdd" when command.ItemId is { } added:
@@ -205,7 +206,7 @@ public sealed class RemoteCommandHandler(
         if (plan.Plan is null)
             return new CommandReply(false, "W aplikacji nie ma otwartego planu.");
         if (songId is null || library.Find(songId) is not { } song)
-            return new CommandReply(false, "Nie ma takiej pieśni.");
+            return new CommandReply(false, Tr.T("Nie ma takiej pieśni."));
         var item = actions.AddAfterLive(song, select: false);
         _undoable.Add(item.Id);
         _itemAdded?.Invoke(this, item);
@@ -217,9 +218,9 @@ public sealed class RemoteCommandHandler(
     private CommandReply UndoAdd(Guid itemId)
     {
         if (!_undoable.TryTake(itemId))
-            return new CommandReply(false, "Tej pieśni nie da się już cofnąć.");
+            return new CommandReply(false, Tr.T("Tej pieśni nie da się już cofnąć."));
         if (plan.Plan?.IndexOf(itemId) is not >= 0)
-            return new CommandReply(false, "Tej pieśni nie ma już w planie.");
+            return new CommandReply(false, Tr.T("Tej pieśni nie ma już w planie."));
         actions.Remove(itemId);
         return new CommandReply(true);
     }

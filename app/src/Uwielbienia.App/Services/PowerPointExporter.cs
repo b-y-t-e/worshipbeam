@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Uwielbienia.Core.Slideshows;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Services;
 
@@ -41,7 +42,7 @@ public sealed class PowerPointExporter : ISlideExporter
             {
                 if (!OperatingSystem.IsWindows())
                     throw new PlatformNotSupportedException(
-                        "Prezentację otwiera PowerPoint (Windows). Zapisz slajdy jako obrazy i dodaj obrazy.");
+                        Tr.T("Prezentację otwiera PowerPoint (Windows). Zapisz slajdy jako obrazy i dodaj obrazy."));
                 Export(presentation, outDir, width, progress);
                 done.SetResult();
             }
@@ -63,8 +64,8 @@ public sealed class PowerPointExporter : ISlideExporter
     private static void Export(string path, string outDir, int width, IProgress<string> progress)
     {
         var type = Type.GetTypeFromProgID("PowerPoint.Application")
-                   ?? throw new InvalidOperationException("Do prezentacji potrzebny jest PowerPoint. Można też dodać slajdy zapisane jako obrazy.");
-        progress.Report("Uruchamianie PowerPointa…");
+                   ?? throw new InvalidOperationException(Tr.T("Do prezentacji potrzebny jest PowerPoint. Można też dodać slajdy zapisane jako obrazy."));
+        progress.Report(Tr.T("Uruchamianie PowerPointa…"));
         dynamic app = Activator.CreateInstance(type)!;
         dynamic? presentation = null;
         try
@@ -82,7 +83,7 @@ public sealed class PowerPointExporter : ISlideExporter
                 dynamic slide = presentation.Slides.Item(i);
                 if ((int)slide.SlideShowTransition.Hidden == MsoTrue)
                     continue;
-                progress.Report($"Slajd {i} z {count}…");
+                progress.Report(Tr.F("Slajd {0} z {1}…", i, count));
                 exported++;
                 slide.Export(Path.Combine(outDir, $"slide{exported:D3}.png"), "PNG", width, height);
             }

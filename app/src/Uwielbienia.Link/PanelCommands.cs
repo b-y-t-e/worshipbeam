@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Songs;
@@ -31,7 +32,7 @@ public sealed class PanelCommands(
         var (planErrorBefore, libraryErrorBefore) = (plan.SaveError, plans.SaveError);
         var reply = await ExecuteCommandAsync(command);
         return (NewError(plan.SaveError, planErrorBefore) ?? NewError(plans.SaveError, libraryErrorBefore)) is { } error
-            ? new CommandReply(false, $"Nie udało się: {error.Message}", Plan: CurrentPlan())
+            ? new CommandReply(false, Tr.F("Nie udało się: {0}", error.Message), Plan: CurrentPlan())
             : reply;
     }
 
@@ -44,21 +45,21 @@ public sealed class PanelCommands(
             case "plans":
                 return new CommandReply(true, Plans: CurrentPlans());
             case "planOpen" when command.PlanId is { } id:
-                return Plans(plans.Open(id), "Nie ma takiego planu.");
+                return Plans(plans.Open(id), Tr.T("Nie ma takiego planu."));
             case "planCreate" when KindOf(command.Kind) is { } kind:
                 return PlanLibrary.IsValid(command.Name, command.Date, kind)
                     ? Plans(plans.Create(command.Name!, command.Date, kind), "")
-                    : new CommandReply(false, kind == PlanKind.Event ? "Podaj nazwę i datę." : "Podaj nazwę.");
+                    : new CommandReply(false, kind == PlanKind.Event ? Tr.T("Podaj nazwę i datę.") : Tr.T("Podaj nazwę."));
             case "planRename" when command.PlanId is { } id:
-                return Plans(plans.Rename(id, command.Name ?? "", command.Date), "Podaj nazwę (i datę wydarzenia).");
+                return Plans(plans.Rename(id, command.Name ?? "", command.Date), Tr.T("Podaj nazwę (i datę wydarzenia)."));
             case "planCopyToToday" when command.PlanId is { } id:
-                return Plans(plans.CopyToToday(id), "Nie ma takiego planu.");
+                return Plans(plans.CopyToToday(id), Tr.T("Nie ma takiego planu."));
             case "planSaveAsTemplate" when command.PlanId is { } id:
-                return Plans(plans.SaveAsTemplate(id), "Nie ma takiego planu.");
+                return Plans(plans.SaveAsTemplate(id), Tr.T("Nie ma takiego planu."));
             case "planDelete" when command.PlanId is { } id:
                 return plans.Delete(id)
                     ? new CommandReply(true, Plans: CurrentPlans())
-                    : new CommandReply(false, "Otwartego planu nie można usunąć.");
+                    : new CommandReply(false, Tr.T("Otwartego planu nie można usunąć."));
             case "planAdd":
                 return Add(command.SongId, command.Index);
             case "planMove" when command.ItemId is { } id && command.Index is { } index:
@@ -69,14 +70,14 @@ public sealed class PanelCommands(
                 return Ok();
             case "planDuplicate" when command.ItemId is { } id:
                 if (await actions.DuplicateAsync(id, select: false) is not { } copy)
-                    return new CommandReply(false, "Nie udało się zduplikować pozycji.");
+                    return new CommandReply(false, Tr.T("Nie udało się zduplikować pozycji."));
                 ItemAdded?.Invoke(this, copy);
                 return Ok();
             case "item" when command.ItemId is { } id:
                 return Item(id);
             case "itemLayout" when command.ItemId is { } id && command.Layout is { } layout:
                 return actions.SetLayout(id, layout.Select(e => new LayoutEntry(e.Code, e.Sung)).ToList()) is null
-                    ? new CommandReply(false, "To nie jest pieśń z tego planu.")
+                    ? new CommandReply(false, Tr.T("To nie jest pieśń z tego planu."))
                     : Item(id);
             default:
                 return new CommandReply(false, $"Nieznane polecenie: {command.Cmd}");
@@ -88,7 +89,7 @@ public sealed class PanelCommands(
         if (plan.Plan is not { } current)
             return new CommandReply(false, "W aplikacji nie ma otwartego planu.");
         if (songId is null || library.Find(songId) is not { } song)
-            return new CommandReply(false, "Nie ma takiej pieśni.");
+            return new CommandReply(false, Tr.T("Nie ma takiej pieśni."));
         var item = actions.InsertAt(song, index ?? current.Items.Count, select: false);
         ItemAdded?.Invoke(this, item);
         return new CommandReply(true, Plan: CurrentPlan(), Added: new PlanItemMessage(item.Id, song.Id, song.Number,
@@ -98,7 +99,7 @@ public sealed class PanelCommands(
     private CommandReply Item(Guid itemId) =>
         plan.Plan?.Items.FirstOrDefault(i => i.Id == itemId) is { } item && itemTypes.Describe(item) is { } info
             ? new CommandReply(true, Item: ItemMessage.From(item, info, plan.FindLiveItem(itemId), library, slides, images))
-            : new CommandReply(false, "Tej pozycji nie ma już w planie.");
+            : new CommandReply(false, Tr.T("Tej pozycji nie ma już w planie."));
 
     private CommandReply Ok() => new(true, Plan: CurrentPlan());
 

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#161B2E">
   <meta name="color-scheme" content="dark light">
-  <title>Uwielbienia — pilot</title>
+  <title>WorshipBeam — pilot</title>
   <link rel="icon" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="stylesheet" href="app.css">
@@ -15,16 +15,16 @@
   <script src="lib/nacl-fast.min.js"></script>
   <script type="module" src="app.js"></script>
 </head>
-<body>
+<body data-t-doc-title="WorshipBeam — pilot">
   <!-- Parowanie: pokazywane, gdy przeglądarka nie zna jeszcze aplikacji -->
   <main id="pairing" class="screen" hidden>
     <img class="brand-icon" src="icon.png" alt="" width="64" height="64">
-    <h1 class="brand">Uwielbienia</h1>
-    <p class="lead">Na komputerze otwórz „Urządzenia” i zeskanuj kod aparatem.</p>
+    <h1 class="brand">WorshipBeam</h1>
+    <p class="lead" data-t="Na komputerze otwórz „Urządzenia” i zeskanuj kod aparatem.">Na komputerze otwórz „Urządzenia” i zeskanuj kod aparatem.</p>
     <form id="pairForm" class="pair-form">
-      <label for="codeInput">Kod parowania</label>
-      <input id="codeInput" autocomplete="off" spellcheck="false" placeholder="np. ajk59">
-      <button type="submit" class="primary">Połącz</button>
+      <label for="codeInput" data-t="Kod parowania">Kod parowania</label>
+      <input id="codeInput" autocomplete="off" spellcheck="false" placeholder="np. ajk59" data-t-placeholder="np. ajk59">
+      <button type="submit" class="primary" data-t="Połącz">Połącz</button>
     </form>
     <p id="pairError" class="error" role="alert"></p>
   </main>
@@ -37,10 +37,10 @@
       <span id="nowTitle" class="now-title">Ekran jest pusty</span>
       <span id="status" class="status" data-state="connecting" role="status">Łączenie…</span>
       <!-- tylko z uprawnieniem z okna „Urządzenia” w aplikacji: pieśń jako następna w planie -->
-      <button id="addSong" class="icon-button add-song" aria-label="Dodaj pieśń jako następną" hidden>
+      <button id="addSong" class="icon-button add-song" aria-label="Dodaj pieśń jako następną" data-t-aria="Dodaj pieśń jako następną" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
       </button>
-      <button id="chordsToggle" class="toggle" aria-pressed="true">Akordy</button>
+      <button id="chordsToggle" class="toggle" aria-pressed="true" data-t="Akordy">Akordy</button>
       <button id="themeToggle" class="icon-button" aria-label="Jasny wygląd">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4.5" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
@@ -49,8 +49,8 @@
           <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
         </svg>
       </button>
-      <button id="toDisplay" class="quiet">Ekran</button>
-      <button id="leave" class="icon-button" aria-label="Odłącz od aplikacji" title="Odłącz od aplikacji">
+      <button id="toDisplay" class="quiet" data-t="Ekran">Ekran</button>
+      <button id="leave" class="icon-button" aria-label="Odłącz od aplikacji" title="Odłącz od aplikacji" data-t-aria="Odłącz od aplikacji" data-t-title="Odłącz od aplikacji">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M15 4h3.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H15M10 8l-4 4 4 4M6 12h10" />
         </svg>
@@ -60,7 +60,7 @@
     <section class="current" aria-live="polite">
       <div class="current-head">
         <span id="nowLabel" class="now-label"></span>
-        <span id="blankBadge" class="badge" hidden>Ekran wygaszony</span>
+        <span id="blankBadge" class="badge" data-t="Ekran wygaszony" hidden>Ekran wygaszony</span>
       </div>
       <div id="currentLines" class="lines"></div>
       <!-- Slajd prezentacji: zmniejszony obraz z aplikacji zamiast samej nazwy slajdu -->
@@ -79,10 +79,10 @@
         </div>
         <!-- obraz względem dźwięku (rzutnik spóźnia obraz) — przesuwamy obraz, nie dźwięk; rzadkie ustawienie, więc małe -->
         <div id="videoOffset" class="video-offset">
-          <span>Obraz</span>
-          <button id="pictureEarlier" aria-label="Obraz wcześniej o 0,1 s"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10,3 L5,8 L10,13" /></svg></button>
+          <span data-t="Obraz">Obraz</span>
+          <button id="pictureEarlier" aria-label="Obraz wcześniej o 0,1 s" data-t-aria="Obraz wcześniej o 0,1 s"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10,3 L5,8 L10,13" /></svg></button>
           <b id="pictureOffset">0,0 s</b>
-          <button id="pictureLater" aria-label="Obraz później o 0,1 s"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6,3 L11,8 L6,13" /></svg></button>
+          <button id="pictureLater" aria-label="Obraz później o 0,1 s" data-t-aria="Obraz później o 0,1 s"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6,3 L11,8 L6,13" /></svg></button>
         </div>
         <p id="videoError" class="video-error" hidden></p>
       </div>
@@ -100,24 +100,24 @@
     </section>
 
     <footer class="controls">
-      <button id="prev" class="big">Wstecz</button>
-      <button id="next" class="big primary">Dalej</button>
+      <button id="prev" class="big" data-t="Wstecz">Wstecz</button>
+      <button id="next" class="big primary" data-t="Dalej">Dalej</button>
     </footer>
 
     <!-- Dodaj pieśń: wyszukiwarka na cały ekran; dotknięcie wyniku = pieśń zaraz za tą na ekranie -->
-    <section id="addSheet" class="sheet" role="dialog" aria-label="Dodaj pieśń jako następną" hidden>
+    <section id="addSheet" class="sheet" role="dialog" aria-label="Dodaj pieśń jako następną" data-t-aria="Dodaj pieśń jako następną" hidden>
       <form id="addForm" class="sheet-search" role="search">
         <input id="addQuery" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false"
-               placeholder="Numer albo słowa pieśni">
-        <button id="addCancel" type="button" class="quiet">Anuluj</button>
+               placeholder="Numer albo słowa pieśni" data-t-placeholder="Numer albo słowa pieśni">
+        <button id="addCancel" type="button" class="quiet" data-t="Anuluj">Anuluj</button>
       </form>
       <ul id="addResults" class="results"></ul>
-      <p id="addEmpty" class="sheet-empty" hidden>Nic nie znaleziono.</p>
+      <p id="addEmpty" class="sheet-empty" data-t="Nic nie znaleziono." hidden>Nic nie znaleziono.</p>
     </section>
 
     <div id="toast" class="toast" role="status" hidden>
       <span id="toastText"></span>
-      <button id="toastUndo" class="quiet" hidden>Cofnij</button>
+      <button id="toastUndo" class="quiet" data-t="Cofnij" hidden>Cofnij</button>
     </div>
   </main>
 
@@ -126,7 +126,7 @@
     <div id="displayScreen" class="slide-screen">
       <div class="slide-fit"><div class="slide-text"></div></div>
     </div>
-    <button id="leaveDisplay" class="display-exit">Wróć do pilota</button>
+    <button id="leaveDisplay" class="display-exit" data-t="Wróć do pilota">Wróć do pilota</button>
   </main>
 </body>
 </html>

@@ -17,7 +17,7 @@ odznaczenie albo przywrócenie części działa na żywo.
 | S1 | **Laptop + drugi ekran** (główny) | Okno operatora na ekranie, na którym jest aplikacja. Okno projekcji otwiera się na pełnym ekranie na **innym** monitorze (wykrywanym automatycznie; przy podłączeniu/odłączeniu przenosi się samo). |
 | S2 | **Jedno urządzenie, bez drugiego ekranu** (awaryjny) | Laptop, tablet lub telefon sam jest ekranem. Tryb sceniczny: pełny ekran z tekstem, a szybki wybór pieśni nakłada się na chwilę na tekst (opis w p. 4). |
 | S3 | **Dwa komputery sparowane** (tailcat-link) | Komputer A = operator, komputer B = tylko ekran (ta sama aplikacja w trybie „Ekran”). A wysyła stan: pieśń, slajd, czarny ekran. |
-| S4 | **Telefon jako pilot** (strona `greysource.eu/uwielbienie`) | Parowanie kodem QR z okna operatora. Na telefonie tylko zmiana slajdów: bieżący slajd z akordami, początek następnego, Wstecz / Dalej — bez planu i edycji (może go obsługiwać dziecko albo muzyk z gitarą). Urządzenie, któremu operator pozwoli w oknie „Urządzenia” („Dodaje pieśni”), ma też „+”: wyszukiwarka i pieśń jako następna w planie, z „Cofnij”. |
+| S4 | **Telefon jako pilot** (strona `greysource.eu/worshipbeam`) | Parowanie kodem QR z okna operatora. Na telefonie tylko zmiana slajdów: bieżący slajd z akordami, początek następnego, Wstecz / Dalej — bez planu i edycji (może go obsługiwać dziecko albo muzyk z gitarą). Urządzenie, któremu operator pozwoli w oknie „Urządzenia” („Dodaje pieśni”), ma też „+”: wyszukiwarka i pieśń jako następna w planie, z „Cofnij”. |
 | S5 | **Telefon jako ekran** (przyszłość) | Ta sama strona w trybie „ekran” — wymaga tylko renderowania stanu, który już wysyłamy w S3/S4. |
 
 Wspólny mianownik S3–S5: **stan projekcji** (`LiveState`) to mały, samowystarczalny
@@ -206,7 +206,7 @@ app/
     Uwielbienia.Android/       # głowica Android
     Uwielbienia.Link/          # tailcat-link: LinkHost (HostManyAsync), protokół (DTO JSON),
                                # LinkLiveStateSink, RemoteCommandHandler
-  web/remote/                  # strona pilota (greysource.eu/uwielbienie), @tailcat/link
+  web/remote/                  # strona pilota (greysource.eu/worshipbeam), @tailcat/link
   tests/
     Uwielbienia.Core.Tests/    # parser na wszystkich 138 plikach, LiveSession, SlideBuilder
 ```
@@ -241,7 +241,7 @@ Najważniejsze decyzje:
    Na ekranie) z akordami, okno projekcji na drugim ekranie z automatycznym wykrywaniem monitora,
    tryb jednego ekranu z szybkim wyborem, motywy jasny/ciemny.
 2. **Zrobione — S4 i S3 przez przeglądarkę:** tailcat-link w aplikacji (host), strona
-   `greysource.eu/uwielbienie` — pilot (dalej, wstecz, czarny ekran, plan, wyszukiwarka)
+   `greysource.eu/worshipbeam` — pilot (dalej, wstecz, czarny ekran, plan, wyszukiwarka)
    i tryb „Ekran” (przeglądarka na drugim komputerze jako ekran projekcji).
 3. **Zrobione — pieśni i teksty w aplikacji:** edytor w kolumnie „Pieśń” (tytuł, kategoria,
    części z rodzajem, akordy na końcu wersu w nawiasie `[G C D]`), nowe pieśni (numery od 1000)
@@ -264,5 +264,5 @@ Najważniejsze decyzje:
 - Android: `dotnet workload install android` + Android SDK/JDK (obecnie niezainstalowane).
 - Linux: do bezpośredniego połączenia link potrzebuje `libmsquic`; bez niego działa przez
   relay.
-- Strona pilota: hosting statyczny na `greysource.eu/uwielbienie`, z kopią `derpmap.json`
+- Strona pilota: hosting statyczny na `greysource.eu/worshipbeam`, z kopią `derpmap.json`
   na tej samej domenie (wymóg tailcat-link w przeglądarce).

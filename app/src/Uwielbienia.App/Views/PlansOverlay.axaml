@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:l="using:Uwielbienia.App.Localization"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Uwielbienia.App.ViewModels"
              x:Class="Uwielbienia.App.Views.PlansOverlay"
@@ -8,17 +9,17 @@
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
       <DockPanel>
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,18">
-          <TextBlock Classes="songTitle" Text="Plany" />
-          <Button Grid.Column="1" Classes="quiet closeButton" Content="✕" ToolTip.Tip="Zamknij" Command="{Binding CloseCommand}" VerticalAlignment="Top" />
+          <TextBlock Classes="songTitle" Text="{l:T 'Plany'}" />
+          <Button Grid.Column="1" Classes="quiet closeButton" Content="✕" ToolTip.Tip="{l:T 'Zamknij'}" Command="{Binding CloseCommand}" VerticalAlignment="Top" />
         </Grid>
 
         <!-- Zakładki + jedna akcja tworzenia, zależna od zakładki. -->
         <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,16">
           <Border Classes="segmented">
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Button Classes="tab" Classes.active="{Binding ShowingEvents}" Content="Wydarzenia"
+              <Button Classes="tab" Classes.active="{Binding ShowingEvents}" Content="{l:T 'Wydarzenia'}"
                       Command="{Binding ShowEventsTabCommand}" />
-              <Button Classes="tab" Classes.active="{Binding ShowingTemplates}" Content="Szablony"
+              <Button Classes="tab" Classes.active="{Binding ShowingTemplates}" Content="{l:T 'Szablony'}"
                       Command="{Binding ShowTemplatesTabCommand}" />
             </StackPanel>
           </Border>
@@ -39,7 +40,7 @@
                       <TextBlock Classes="caption" Text="{Binding Details}" />
                     </StackPanel>
                     <Border Grid.Column="1" Classes="badge" IsVisible="{Binding IsOpen}" VerticalAlignment="Center">
-                      <TextBlock Text="otwarty" />
+                      <TextBlock Text="{l:T 'otwarty'}" />
                     </Border>
                   </Grid>
                 </DataTemplate>
@@ -52,31 +53,31 @@
             <Panel>
               <TextBlock Classes="bodyMuted" TextWrapping="Wrap" TextAlignment="Center"
                          HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding ShowPlaceholder}"
-                         Text="Wybierz plan z listy albo utwórz nowy." />
+                         Text="{l:T 'Wybierz plan z listy albo utwórz nowy.'}" />
 
               <DockPanel IsVisible="{Binding HasForm}">
                 <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
                   <TextBlock Classes="heading" Text="{Binding FormTitle}" />
                   <Border Grid.Column="1" Classes="badge" IsVisible="{Binding SelectedIsOpen}" VerticalAlignment="Center">
-                    <TextBlock Text="otwarty teraz" />
+                    <TextBlock Text="{l:T 'otwarty teraz'}" />
                   </Border>
                 </Grid>
 
                 <Grid DockPanel.Dock="Top" ColumnDefinitions="*,16,200" Margin="0,0,0,18">
                   <StackPanel Spacing="6">
-                    <TextBlock Classes="bodyStrong" Text="Nazwa" />
+                    <TextBlock Classes="bodyStrong" Text="{l:T 'Nazwa'}" />
                     <TextBox x:Name="NameBox" Text="{Binding EditName}" PlaceholderText="{Binding NamePlaceholder}" />
                   </StackPanel>
                   <StackPanel Grid.Column="2" Spacing="6" IsVisible="{Binding ShowingEvents}">
-                    <TextBlock Classes="bodyStrong" Text="Data" />
+                    <TextBlock Classes="bodyStrong" Text="{l:T 'Data'}" />
                     <CalendarDatePicker SelectedDate="{Binding EditDate}" HorizontalAlignment="Stretch" />
                   </StackPanel>
                 </Grid>
 
                 <!-- Akcje: tworzenie -->
                 <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,10,Auto" IsVisible="{Binding IsCreating}">
-                  <Button Grid.Column="1" Content="Anuluj" Command="{Binding CancelNewCommand}" />
-                  <Button Grid.Column="3" Classes="primary" Content="Utwórz i otwórz" Command="{Binding CreateCommand}"
+                  <Button Grid.Column="1" Content="{l:T 'Anuluj'}" Command="{Binding CancelNewCommand}" />
+                  <Button Grid.Column="3" Classes="primary" Content="{l:T 'Utwórz i otwórz'}" Command="{Binding CreateCommand}"
                           IsEnabled="{Binding CanCreate}" />
                 </Grid>
 
@@ -85,9 +86,9 @@
                   <Border Classes="confirm" IsVisible="{Binding IsDeleteConfirmationOpen}">
                     <Grid ColumnDefinitions="*,Auto,10,Auto">
                       <TextBlock Classes="bodyStrong" TextWrapping="Wrap" VerticalAlignment="Center"
-                                 Text="Usunąć ten plan? Tej operacji nie można cofnąć." />
-                      <Button Grid.Column="1" Content="Anuluj" Command="{Binding CancelDeleteCommand}" />
-                      <Button Grid.Column="3" Classes="danger" Content="Usuń" Command="{Binding ConfirmDeleteCommand}" />
+                                 Text="{l:T 'Usunąć ten plan? Tej operacji nie można cofnąć.'}" />
+                      <Button Grid.Column="1" Content="{l:T 'Anuluj'}" Command="{Binding CancelDeleteCommand}" />
+                      <Button Grid.Column="3" Classes="danger" Content="{l:T 'Usuń'}" Command="{Binding ConfirmDeleteCommand}" />
                     </Grid>
                   </Border>
 
@@ -95,7 +96,7 @@
                   <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding !IsDeleteConfirmationOpen}">
                     <Button Classes="primary" Content="{Binding OpenButtonText}" Command="{Binding OpenSelectedCommand}"
                             IsVisible="{Binding SelectedIsClosed}" />
-                    <Button Content="Zapisz zmiany" Command="{Binding SaveCommand}"
+                    <Button Content="{l:T 'Zapisz zmiany'}" Command="{Binding SaveCommand}"
                             IsVisible="{Binding IsDirty}" IsEnabled="{Binding CanSave}" />
                   </StackPanel>
 
@@ -104,14 +105,14 @@
                           IsVisible="{Binding !IsDeleteConfirmationOpen}">
                     <Grid ColumnDefinitions="Auto,*,Auto">
                       <StackPanel Orientation="Horizontal" Spacing="4" Margin="-8,0,0,0">
-                        <Button Classes="quiet" Content="Kopia na dziś" Command="{Binding CopyToTodayCommand}" IsVisible="{Binding ShowingEvents}"
-                                ToolTip.Tip="Nowe wydarzenie z dzisiejszą datą i tymi samymi pieśniami" />
-                        <Button Classes="quiet" Content="Zapisz jako szablon" Command="{Binding SaveAsTemplateCommand}" IsVisible="{Binding ShowingEvents}"
-                                ToolTip.Tip="Stały zestaw tych pieśni do ponownego użycia" />
-                        <Button Classes="quiet" Content="Nowe wydarzenie z szablonu" Command="{Binding CopyToTodayCommand}" IsVisible="{Binding ShowingTemplates}"
-                                ToolTip.Tip="Tworzy wydarzenie na dziś z pieśniami szablonu; szablon pozostaje bez zmian" />
+                        <Button Classes="quiet" Content="{l:T 'Kopia na dziś'}" Command="{Binding CopyToTodayCommand}" IsVisible="{Binding ShowingEvents}"
+                                ToolTip.Tip="{l:T 'Nowe wydarzenie z dzisiejszą datą i tymi samymi pieśniami'}" />
+                        <Button Classes="quiet" Content="{l:T 'Zapisz jako szablon'}" Command="{Binding SaveAsTemplateCommand}" IsVisible="{Binding ShowingEvents}"
+                                ToolTip.Tip="{l:T 'Stały zestaw tych pieśni do ponownego użycia'}" />
+                        <Button Classes="quiet" Content="{l:T 'Nowe wydarzenie z szablonu'}" Command="{Binding CopyToTodayCommand}" IsVisible="{Binding ShowingTemplates}"
+                                ToolTip.Tip="{l:T 'Tworzy wydarzenie na dziś z pieśniami szablonu; szablon pozostaje bez zmian'}" />
                       </StackPanel>
-                      <Button Grid.Column="2" Classes="quiet dangerText" Content="Usuń…" Command="{Binding RequestDeleteCommand}"
+                      <Button Grid.Column="2" Classes="quiet dangerText" Content="{l:T 'Usuń…'}" Command="{Binding RequestDeleteCommand}"
                               IsVisible="{Binding CanDelete}" />
                     </Grid>
                   </Border>

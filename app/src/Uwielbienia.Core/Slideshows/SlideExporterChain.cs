@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 namespace Uwielbienia.Core.Slideshows;
 
 /// <summary>
@@ -23,7 +24,7 @@ public sealed class SlideExporterChain(IReadOnlyList<ISlideExporter> exporters) 
                 await exporter.ExportAsync(presentation, outDir, width, progress).ConfigureAwait(false);
                 if (Directory.EnumerateFiles(outDir).Any())
                     return;
-                last = new InvalidOperationException($"{exporter.Name}: brak slajdów");
+                last = new InvalidOperationException(Tr.F("{0}: brak slajdów", exporter.Name));
             }
             catch (Exception ex)
             {
@@ -33,6 +34,6 @@ public sealed class SlideExporterChain(IReadOnlyList<ISlideExporter> exporters) 
             foreach (var file in Directory.EnumerateFiles(outDir))
                 File.Delete(file);
         }
-        throw last ?? new InvalidOperationException(NoExporter);
+        throw last ?? new InvalidOperationException(Tr.T(NoExporter));
     }
 }

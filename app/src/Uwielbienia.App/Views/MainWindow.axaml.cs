@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Uwielbienia.Core.Localization;
 using Uwielbienia.App.Services;
 using Uwielbienia.App.ViewModels;
 using Uwielbienia.Core.Plans;
@@ -185,11 +186,11 @@ public partial class MainWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Prezentacja albo obrazy slajdów",
+            Title = Tr.T("Prezentacja albo obrazy slajdów"),
             AllowMultiple = true,
             FileTypeFilter =
             [
-                new FilePickerFileType("Prezentacje i obrazy")
+                new FilePickerFileType(Tr.T("Prezentacje i obrazy"))
                 {
                     Patterns = [.. SlideshowLibrary.PresentationExtensions.Concat(SlideshowLibrary.ImageExtensions).Select(ext => "*" + ext)],
                 },
@@ -205,9 +206,9 @@ public partial class MainWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Obraz",
+            Title = Tr.T("Obraz"),
             AllowMultiple = true,
-            FileTypeFilter = [new FilePickerFileType("Obrazy") { Patterns = [.. SlideshowLibrary.ImageExtensions.Select(ext => "*" + ext)] }],
+            FileTypeFilter = [new FilePickerFileType(Tr.T("Obrazy")) { Patterns = [.. SlideshowLibrary.ImageExtensions.Select(ext => "*" + ext)] }],
         });
         var paths = files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
         if (paths.Count > 0)
@@ -219,12 +220,12 @@ public partial class MainWindow : Window
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Film",
+            Title = Tr.T("Film"),
             AllowMultiple = true,
             FileTypeFilter =
             [
-                new FilePickerFileType("Filmy") { Patterns = [.. VideoPlanItemType.Extensions.Select(ext => "*" + ext)] },
-                new FilePickerFileType("Wszystkie pliki") { Patterns = ["*"] },
+                new FilePickerFileType(Tr.T("Filmy")) { Patterns = [.. VideoPlanItemType.Extensions.Select(ext => "*" + ext)] },
+                new FilePickerFileType(Tr.T("Wszystkie pliki")) { Patterns = ["*"] },
             ],
         });
         var videos = files.Select(f => f.TryGetLocalPath()).OfType<string>().Select(VideoPlanItem.For).ToList();
@@ -239,9 +240,9 @@ public partial class MainWindow : Window
             return;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Obrazy do kiosku",
+            Title = Tr.T("Obrazy do kiosku"),
             AllowMultiple = true,
-            FileTypeFilter = [new FilePickerFileType("Obrazy") { Patterns = [.. SlideshowLibrary.ImageExtensions.Select(ext => "*" + ext)] }],
+            FileTypeFilter = [new FilePickerFileType(Tr.T("Obrazy")) { Patterns = [.. SlideshowLibrary.ImageExtensions.Select(ext => "*" + ext)] }],
         });
         var paths = files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
         if (paths.Count > 0)
@@ -255,8 +256,8 @@ public partial class MainWindow : Window
             return;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Prezentacja do kiosku",
-            FileTypeFilter = [new FilePickerFileType("Prezentacje") { Patterns = [.. SlideshowLibrary.PresentationExtensions.Select(ext => "*" + ext)] }],
+            Title = Tr.T("Prezentacja do kiosku"),
+            FileTypeFilter = [new FilePickerFileType(Tr.T("Prezentacje")) { Patterns = [.. SlideshowLibrary.PresentationExtensions.Select(ext => "*" + ext)] }],
         });
         if (files.Select(f => f.TryGetLocalPath()).OfType<string>().FirstOrDefault() is { } path)
             await kiosk.AddPresentationAsync(path);
@@ -315,8 +316,8 @@ public partial class MainWindow : Window
             return;
         var menu = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedRight };
         if (ViewModel.Preview.CanReorderParts)
-            menu.Items.Add(new MenuItem { Header = "Powtórz", Command = ViewModel.Preview.DuplicatePartCommand, CommandParameter = part });
-        menu.Items.Add(new MenuItem { Header = "Usuń", Command = ViewModel.Preview.RemovePartCommand, CommandParameter = part });
+            menu.Items.Add(new MenuItem { Header = Tr.T("Powtórz"), Command = ViewModel.Preview.DuplicatePartCommand, CommandParameter = part });
+        menu.Items.Add(new MenuItem { Header = Tr.T("Usuń"), Command = ViewModel.Preview.RemovePartCommand, CommandParameter = part });
         menu.ShowAt(button);
     }
 

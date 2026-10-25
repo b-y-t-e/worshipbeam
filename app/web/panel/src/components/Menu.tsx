@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MoreIcon } from "./Icons";
+import { t } from "../i18n";
 
 export interface MenuAction {
   label: string;
@@ -9,7 +10,7 @@ export interface MenuAction {
 }
 
 /** Przycisk „⋯” z listą czynności (też prawy klik na wierszu — <c>openAt</c>). Zamyka się kliknięciem obok i Esc. */
-export function Menu({ actions, label = "Więcej" }: { actions: MenuAction[]; label?: string }) {
+export function Menu({ actions, label = t("Więcej") }: { actions: MenuAction[]; label?: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

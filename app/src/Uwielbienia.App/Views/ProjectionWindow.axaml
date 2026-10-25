@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
+             xmlns:l="using:Uwielbienia.App.Localization"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Uwielbienia.App.ViewModels"
         xmlns:v="using:Uwielbienia.App.Views"
         x:Class="Uwielbienia.App.Views.ProjectionWindow"
         x:DataType="vm:ProjectionViewModel"
-        Title="Uwielbienia — ekran"
+        Title="{l:T 'WorshipBeam — ekran'}"
         Icon="avares://Uwielbienia.App/Assets/icon.ico"
         Background="{Binding Live.Appearance.Background}"
         WindowStartupLocation="Manual"
@@ -30,8 +31,8 @@
       <Border IsVisible="{Binding Live.Video.IsPromptVisible}" VerticalAlignment="Top" HorizontalAlignment="Center"
               Margin="0,40,0,0" Padding="22,12" CornerRadius="12" Background="#D9201A14">
         <StackPanel Spacing="4">
-          <TextBlock Text="Przytrzymaj „do tyłu” — poprzednia pozycja planu" FontSize="24" Foreground="#F4ECDD" />
-          <TextBlock Text="Przytrzymaj „do przodu” — następna pozycja planu" FontSize="24" Foreground="#F4ECDD" />
+          <TextBlock Text="{l:T 'Przytrzymaj „do tyłu” — poprzednia pozycja planu'}" FontSize="24" Foreground="#F4ECDD" />
+          <TextBlock Text="{l:T 'Przytrzymaj „do przodu” — następna pozycja planu'}" FontSize="24" Foreground="#F4ECDD" />
         </StackPanel>
       </Border>
       <Border x:Name="VideoBar" IsVisible="False" VerticalAlignment="Bottom" Margin="60,0,60,40" Padding="18,8"
@@ -42,7 +43,7 @@
           <TextBlock Grid.Column="2" Text="{Binding Live.Video.TimeText}" VerticalAlignment="Center" FontSize="18"
                      Foreground="#C9CCD8" FontFeatures="+tnum" />
           <!-- przesunięcie obrazu względem dźwięku — tylko gdy ustawione ([ / ]) -->
-          <TextBlock Grid.Column="4" Text="{Binding Live.Video.PictureOffsetText, StringFormat='Obraz {0}'}"
+          <TextBlock Grid.Column="4" Text="{Binding Live.Video.PictureOffsetText, Converter={x:Static l:Fmt.Instance}, ConverterParameter='Obraz {0}'}"
                      IsVisible="{Binding Live.Video.HasPictureOffset}" VerticalAlignment="Center" FontSize="18"
                      Foreground="#C9CCD8" FontFeatures="+tnum" />
         </Grid>
@@ -55,10 +56,10 @@
     <!-- Tryb jednego urządzenia: dyskretne sterowanie na dole (także dotykiem). -->
     <StackPanel x:Name="SameScreenBar" IsVisible="False" Orientation="Horizontal" Spacing="8"
                 HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,18" Opacity="0.35">
-      <Button Content="Wstecz" Command="{Binding Live.PreviousCommand}" Focusable="False" />
-      <Button Content="Szukaj pieśni" Click="OnSearchClick" Focusable="False" />
-      <Button Content="Dalej" Command="{Binding Live.NextCommand}" Focusable="False" />
-      <Button Content="Wróć do planu (Esc)" Click="OnExitClick" Focusable="False" />
+      <Button Content="{l:T 'Wstecz'}" Command="{Binding Live.PreviousCommand}" Focusable="False" />
+      <Button Content="{l:T 'Szukaj pieśni'}" Click="OnSearchClick" Focusable="False" />
+      <Button Content="{l:T 'Dalej'}" Command="{Binding Live.NextCommand}" Focusable="False" />
+      <Button Content="{l:T 'Wróć do planu (Esc)'}" Click="OnExitClick" Focusable="False" />
     </StackPanel>
 
     <!-- Szybki wybór pieśni w trakcie śpiewu: tekst zostaje na ekranie, dopóki nie wybierzesz nowej. -->
@@ -66,7 +67,7 @@
       <Border Classes="panel" Width="720" MaxHeight="620" VerticalAlignment="Top" Margin="0,80,0,0">
         <DockPanel>
           <TextBox x:Name="QuickPickBox" DockPanel.Dock="Top" Classes="search"
-                   Text="{Binding QuickPick.Query}" PlaceholderText="Numer albo słowa pieśni" />
+                   Text="{Binding QuickPick.Query}" PlaceholderText="{l:T 'Numer albo słowa pieśni'}" />
           <ListBox ItemsSource="{Binding QuickPick.Results}" SelectedItem="{Binding QuickPick.Selected}"
                    Margin="0,10,0,0" DoubleTapped="OnResultDoubleTapped">
             <ListBox.ItemTemplate>

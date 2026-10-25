@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { CloseIcon } from "./Icons";
+import { t } from "../i18n";
 
 /** Nakładka jak w aplikacji: przyciemnione tło, panel na środku, Esc i ✕ zamykają. */
 export function Dialog({ title, onClose, children, wide }: {
@@ -15,7 +16,7 @@ export function Dialog({ title, onClose, children, wide }: {
       <section className={`dialog${wide ? " wide" : ""}`} role="dialog" aria-label={title}>
         <header className="dialog-head">
           <h2>{title}</h2>
-          <button className="icon-button" aria-label="Zamknij" onClick={onClose}><CloseIcon /></button>
+          <button className="icon-button" aria-label={t("Zamknij")} onClick={onClose}><CloseIcon /></button>
         </header>
         {children}
       </section>
@@ -31,7 +32,7 @@ export function Confirm({ text, action, onConfirm, onCancel }: {
     <Dialog title={action} onClose={onCancel}>
       <p>{text}</p>
       <div className="dialog-buttons">
-        <button onClick={onCancel}>Anuluj</button>
+        <button onClick={onCancel}>{t("Anuluj")}</button>
         <button className="danger" onClick={onConfirm} autoFocus>{action}</button>
       </div>
     </Dialog>

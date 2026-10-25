@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -25,7 +26,7 @@ public sealed partial class PlanTransitionsViewModel : ObservableObject
     public TransitionChoiceViewModel Choice => _choice;
 
     /// <summary>Np. „Przejście: Akwarela”, „Przejście: losowe (3)”, „Przejście: przenikanie”.</summary>
-    public string ButtonText => "Przejście: " + _choice.Description;
+    public string ButtonText => Tr.F("Przejście: {0}", _choice.Description);
 
     /// <summary>Napis w pasku górnym obok ikony, np. „Akwarela”, „Losowe (3)”.</summary>
     public string ShortText => _choice.Title;

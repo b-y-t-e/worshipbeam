@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using Tailcat.Link;
 using Tailcat.Link.Storage;
 using Uwielbienia.Core.Plans;
@@ -108,7 +109,7 @@ public sealed class LinkRemoteServer(
 
     public IReadOnlyList<RemoteDevice> Devices => _host?.Peers
         .OrderBy(p => p.PairedAt)
-        .Select(p => new RemoteDevice(KeyOf(p), p.Name ?? "urządzenie", p.PairedAt, p.IsConnected,
+        .Select(p => new RemoteDevice(KeyOf(p), p.Name ?? Tr.T("urządzenie"), p.PairedAt, p.IsConnected,
             _permissions.CanAddSongs(KeyOf(p)), _permissions.Has(KeyOf(p), DevicePermission.Panel)))
         .ToList() ?? [];
 
@@ -118,7 +119,7 @@ public sealed class LinkRemoteServer(
 
     public void SetPermission(string deviceKey, DevicePermission permission, bool allowed)
     {
-        DevicesError = _permissions.Set(deviceKey, permission, allowed) ? null : PermissionsNotSaved;
+        DevicesError = _permissions.Set(deviceKey, permission, allowed) ? null : Tr.T(PermissionsNotSaved);
         if (DevicesError is null && _host?.Peers.FirstOrDefault(p => KeyOf(p) == deviceKey) is { IsConnected: true } peer)
             SendWelcome(peer);
         Changed?.Invoke(this, EventArgs.Empty);
@@ -131,7 +132,7 @@ public sealed class LinkRemoteServer(
         // najpierw uprawnienia: po ponownym sparowaniu urządzenie zaczyna od zera — tylko zmiana slajdów
         DevicesError = Enum.GetValues<DevicePermission>().All(p => _permissions.Set(deviceKey, p, false))
             ? null
-            : PermissionsNotSaved;
+            : Tr.T(PermissionsNotSaved);
         if (DevicesError is null)
         {
             DevicesError = await TryForgetPeerAsync(_host, peer, cancellationToken);
@@ -153,7 +154,7 @@ public sealed class LinkRemoteServer(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            return $"Nie udało się zapomnieć urządzenia: {ex.Message}";
+            return Tr.F("Nie udało się zapomnieć urządzenia: {0}", ex.Message);
         }
     }
 
@@ -177,7 +178,7 @@ public sealed class LinkRemoteServer(
                 return;
         }
         if (!_permissions.Set(key, DevicePermission.Panel, true))
-            DevicesError = PermissionsNotSaved;
+            DevicesError = Tr.T(PermissionsNotSaved);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
@@ -220,7 +221,7 @@ public sealed class LinkRemoteServer(
     public async Task<RemoteInvitation> InviteAsync(RemoteClient client = RemoteClient.Pilot, CancellationToken cancellationToken = default)
     {
         if (_host is null)
-            throw new InvalidOperationException("Serwer połączeń nie działa.");
+            throw new InvalidOperationException(Tr.T("Serwer połączeń nie działa."));
         var invitation = await _host.InviteAsync(new InvitationRequest
         {
             Label = client == RemoteClient.Panel ? "panel" : "telefon",

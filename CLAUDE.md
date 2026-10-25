@@ -1,4 +1,4 @@
-# Uwielbienia — śpiewnik pieśni uwielbieniowych
+# WorshipBeam (dawniej Uwielbienia) — śpiewnik pieśni uwielbieniowych
 
 Repozytorium przechowuje teksty pieśni w ujednoliconym formacie Markdown, przeznaczonym
 do odczytu maszynowego przez aplikację (np. rzutnik tekstów, śpiewnik z akordami).
@@ -168,9 +168,9 @@ uruchamianie, budowanie i wydanie: `app/README.md`.
 | `src/Uwielbienia.Desktop` | program Windows/Linux (`Program.cs`, Velopack) |
 | `tests/Uwielbienia.Core.Tests` | testy rdzenia i protokołu (m.in. parsowanie i zapis wszystkich pieśni z `Teksty/`) |
 | `tools/Uwielbienia.Screenshots` | renderuje okna do PNG bez wyświetlania (scenariusz w `Program.cs`) |
-| `web/remote` | strona pilota i ekranu w przeglądarce (`greysource.eu/uwielbienie/telefon`), bez kroku budowania |
-| `web/landing` | strona startowa `greysource.eu/uwielbienie/` (React + Vite): linki do pilota i panelu, pobranie aplikacji; adresy z `#code=` / `#ekran` (kody QR starszych wersji aplikacji) przekierowuje do `telefon/` |
-| `web/panel` | panel na drugim komputerze / tablecie (`greysource.eu/uwielbienie/panel`): React + Vite + TypeScript, `npm run build` → `dist/` (robi to `build.py`) |
+| `web/remote` | strona pilota i ekranu w przeglądarce (`greysource.eu/worshipbeam/telefon`), bez kroku budowania |
+| `web/landing` | strona startowa `greysource.eu/worshipbeam/` (React + Vite): linki do pilota i panelu, pobranie aplikacji; adresy z `#code=` / `#ekran` (kody QR starszych wersji aplikacji) przekierowuje do `telefon/` |
+| `web/panel` | panel na drugim komputerze / tablecie (`greysource.eu/worshipbeam/panel`): React + Vite + TypeScript, `npm run build` → `dist/` (robi to `build.py`) |
 
 .NET 10, Avalonia 12, CommunityToolkit.Mvvm, DI (`Microsoft.Extensions.DependencyInjection`),
 `TreatWarningsAsErrors`. Clean Code i SOLID: logika w Core, UI tylko wyświetla i deleguje.
@@ -497,6 +497,17 @@ Plan, ekran, telefon i lista „Plany” obsługują nowy rodzaj bez zmian — w
 - Nakładki: „Plany” (`PlansViewModel` → `PlanLibrary` — zakładki Wydarzenia/Szablony, lista + formularz; nazwa
   wymagana, bez daty w nazwie), „Dodaj do planu”, „Urządzenia”, potwierdzenia usuwania. Esc zamyka;
   w edytorze klawisze globalne (spacja, pisanie) nie działają.
+
+### Nazwa i języki
+
+- Aplikacja nazywa się **WorshipBeam** (strony: `greysource.eu/worshipbeam/`, repozytorium `b-y-t-e/worshipbeam`). Identyfikatory
+  wewnętrzne zostają: przestrzenie nazw `Uwielbienia.*`, folder danych `%APPDATA%\Uwielbienia`, `packId` Velopack „Uwielbienia”
+  i nazwy plików wydania — zmiana zerwałaby aktualizacje i dane istniejących instalacji.
+- Języki interfejsu: polski, angielski, węgierski, chorwacki (`Tr` w `Core/Localization`). Klucz = tekst polski, słowniki
+  `Localization/{en,hu,hr}/*.json` (zasoby wbudowane), brak tłumaczenia = tekst polski. XAML: `{l:T 'Tekst'}`, formatowanie —
+  `Fmt` zamiast `StringFormat`; kod: `Tr.T` / `Tr.F`. Wybór: przycisk języka w pasku (`AppSettings.Language`, `null` = wg systemu),
+  zmiana uruchamia aplikację od nowa. Pilot i panel biorą język z `StateMessage.Language`, strona startowa — z przeglądarki.
+  Nowy tekst interfejsu = wpis we wszystkich trzech słownikach. Treści w plikach (`piesn.md`, nazwy folderów) zostają po polsku.
 
 ### Dane i ustawienia (`AppPaths`, `%APPDATA%\Uwielbienia`, Linux `~/.config/Uwielbienia`)
 

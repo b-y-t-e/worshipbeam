@@ -6,6 +6,7 @@ using Uwielbienia.App.Services;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Slideshows;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -65,9 +66,9 @@ public sealed partial class PresentationViewModel : ObservableObject, IDisposabl
     public string? Summary => Slides.Count switch
     {
         0 => null,
-        1 => "1 slajd",
-        var n when n % 10 is >= 2 and <= 4 && n % 100 is < 12 or > 14 => $"{n} slajdy",
-        var n => $"{n} slajdów",
+        1 => Tr.T("1 slajd"),
+        var n when n % 10 is >= 2 and <= 4 && n % 100 is < 12 or > 14 => Tr.F("{0} slajdy", n),
+        var n => Tr.F("{0} slajdów", n),
     };
 
     [RelayCommand]
@@ -106,7 +107,7 @@ public sealed partial class PresentationViewModel : ObservableObject, IDisposabl
 
 public sealed class PresentationSlideViewModel(int number, string file)
 {
-    public string Label { get; } = $"Slajd {number}";
+    public string Label { get; } = Tr.F("Slajd {0}", number);
 
     public Task<Bitmap?> Thumbnail => SlideImages.LoadThumbnailAsync(file);
 }

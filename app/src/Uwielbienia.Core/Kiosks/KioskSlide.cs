@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Presentation;
 
 namespace Uwielbienia.Core.Kiosks;
@@ -12,7 +13,7 @@ public sealed record KioskSlide(
     IReadOnlyList<KioskFrame> Frames,
     TimeSpan Interval,
     IReadOnlyList<SlideTransition>? Transitions = null,
-    bool SlowZoom = false) : Slide("K", "Kiosk", [])
+    bool SlowZoom = false) : Slide("K", Tr.T("Kiosk"), [])
 {
     public IReadOnlyList<SlideTransition> ChosenTransitions => Transitions ?? [];
 

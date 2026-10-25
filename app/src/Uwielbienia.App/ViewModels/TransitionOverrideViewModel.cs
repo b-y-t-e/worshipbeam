@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -21,7 +22,7 @@ public sealed partial class TransitionOverrideViewModel : ObservableObject
     public TransitionOverrideViewModel(Action<IReadOnlyList<SlideTransition>?> save, string label = "Przejście")
     {
         _save = save;
-        _label = label;
+        _label = Tr.T(label);
         _choice.Chosen += (_, chosen) => OnChosen(chosen);
     }
 
@@ -33,10 +34,10 @@ public sealed partial class TransitionOverrideViewModel : ObservableObject
     public partial bool FollowsPlan { get; set; } = true;
 
     /// <summary>Np. „Przejście: jak w planie”, „Przejście: Płomień”, „Przejście: losowe (2)”.</summary>
-    public string ButtonText => _label + ": " + (FollowsPlan ? "jak w planie" : _choice.Description);
+    public string ButtonText => _label + ": " + (FollowsPlan ? Tr.T("jak w planie") : _choice.Description);
 
     /// <summary>Napis w pasku górnym obok ikony, np. „Jak w planie”, „Płomień”.</summary>
-    public string ShortText => FollowsPlan ? "Jak w planie" : _choice.Title;
+    public string ShortText => FollowsPlan ? Tr.T("Jak w planie") : _choice.Title;
 
     /// <summary>Pokazuje wybór pozycji: własny albo (<paramref name="own"/> = <c>null</c>) przejście planu.</summary>
     public void Show(IReadOnlyList<SlideTransition>? own, IReadOnlyList<SlideTransition> plan)

@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using System.Collections.Concurrent;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
@@ -97,6 +98,6 @@ public sealed class VideoPlanItemType : IPlanItemType
     {
         if (_timer is null || !_exists.TryGetValue(video.File, out var exists))
             _exists[video.File] = exists = File.Exists(video.File);
-        return exists ? null : $"Nie ma pliku: {video.File}";
+        return exists ? null : Tr.F("Nie ma pliku: {0}", video.File);
     }
 }

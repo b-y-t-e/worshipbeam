@@ -4,9 +4,11 @@
         xmlns:v="using:Uwielbienia.App.Views"
         xmlns:p="using:Uwielbienia.Core.Presentation"
         xmlns:primitives="using:Avalonia.Controls.Primitives"
+        xmlns:l="using:Uwielbienia.App.Localization"
+        xmlns:loc="using:Uwielbienia.Core.Localization"
         x:Class="Uwielbienia.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="Uwielbienia"
+        Title="WorshipBeam"
         Icon="avares://Uwielbienia.App/Assets/icon.ico"
         Width="1280" Height="800" MinWidth="860" MinHeight="540"
         WindowStartupLocation="CenterScreen"
@@ -14,10 +16,10 @@
   <Window.DataTemplates>
     <!-- Wybór efektów przejścia: „Przenikanie” (żaden efekt), „Brak efektu” (od razu) albo efekty — kilka = za każdym razem losowo jeden. -->
     <DataTemplate DataType="vm:TransitionChoiceViewModel">
-      <StackPanel Spacing="10" ToolTip.Tip="Kilka zaznaczonych — za każdym razem losowo jeden">
+      <StackPanel Spacing="10" ToolTip.Tip="{l:T 'Kilka zaznaczonych — za każdym razem losowo jeden'}">
         <StackPanel Orientation="Horizontal" Spacing="6">
-          <ToggleButton Classes="chip" Content="Przenikanie" IsChecked="{Binding IsCrossFade}" />
-          <ToggleButton Classes="chip" Content="Brak efektu" IsChecked="{Binding IsCut}" />
+          <ToggleButton Classes="chip" Content="{l:T 'Przenikanie'}" IsChecked="{Binding IsCrossFade}" />
+          <ToggleButton Classes="chip" Content="{l:T 'Brak efektu'}" IsChecked="{Binding IsCut}" />
         </StackPanel>
         <ItemsControl ItemsSource="{Binding Options}">
           <ItemsControl.ItemsPanel>
@@ -36,7 +38,7 @@
     <!-- Wybór przejścia z „Jak w planie” (kolumna „Pieśń” i „Slajdy: …” w pasku górnym). -->
     <DataTemplate DataType="vm:TransitionOverrideViewModel">
       <StackPanel Width="340" Spacing="10" Margin="4">
-        <ToggleButton Classes="chip" Content="Jak w planie" HorizontalAlignment="Left" IsChecked="{Binding FollowsPlan}" />
+        <ToggleButton Classes="chip" Content="{l:T 'Jak w planie'}" HorizontalAlignment="Left" IsChecked="{Binding FollowsPlan}" />
         <ContentControl Content="{Binding Choice}" />
       </StackPanel>
     </DataTemplate>
@@ -46,7 +48,7 @@
 
       <!-- Pasek górny: plan, stan projekcji, telefon, wygląd -->
       <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" Margin="4,0,4,14">
-        <Button Classes="quiet" Command="{Binding Plans.ShowCommand}" ToolTip.Tip="Plany: otwórz, utwórz, użyj ponownie">
+        <Button Classes="quiet" Command="{Binding Plans.ShowCommand}" ToolTip.Tip="{l:T 'Plany: otwórz, utwórz, użyj ponownie'}">
           <StackPanel Orientation="Horizontal" Spacing="12">
             <TextBlock Classes="songTitle" Text="{Binding Plan.Name}" />
             <TextBlock Classes="caption" Text="{Binding Plan.DateText}" VerticalAlignment="Center" IsVisible="{Binding Plan.DateText, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -72,7 +74,10 @@
               </StackPanel>
             </Button>
             <!-- Przejście z jednej pozycji planu na inną (rzutnik): efekty w panelu, każda zmiana od razu w planie. -->
-            <Button Classes="barIcon" ToolTip.Tip="{Binding Transitions.ButtonText, StringFormat='{}{0} — przejście na rzutniku z jednej pozycji planu na inną'}">
+            <Button Classes="barIcon">
+              <ToolTip.Tip>
+                <Binding Path="Transitions.ButtonText" Converter="{x:Static l:Fmt.Instance}" ConverterParameter="{}{0} — przejście na rzutniku z jednej pozycji planu na inną" />
+              </ToolTip.Tip>
               <StackPanel Classes="withIcon">
                 <Path Data="M3,5 H21 V19 H3 Z M14,5 L10,19" />
                 <TextBlock Text="{Binding Transitions.ShortText}" />
@@ -84,7 +89,10 @@
               </Button.Flyout>
             </Button>
             <!-- Przejście między slajdami jednej pozycji (zwrotki, slajdy prezentacji): jak w planie albo własne efekty. -->
-            <Button Classes="barIcon" ToolTip.Tip="{Binding SlideTransitions.ButtonText, StringFormat='{}{0} — przejście na rzutniku między slajdami jednej pozycji planu'}">
+            <Button Classes="barIcon">
+              <ToolTip.Tip>
+                <Binding Path="SlideTransitions.ButtonText" Converter="{x:Static l:Fmt.Instance}" ConverterParameter="{}{0} — przejście na rzutniku między slajdami jednej pozycji planu" />
+              </ToolTip.Tip>
               <StackPanel Classes="withIcon">
                 <Path Data="M3,4 H21 V15 H3 Z M7,19.5 H7.01 M12,19.5 H12.01 M17,19.5 H17.01" />
                 <TextBlock Text="{Binding SlideTransitions.ShortText}" />
@@ -96,38 +104,61 @@
               </Button.Flyout>
             </Button>
             <!-- Obecne tło ekranu w sali; kliknięcie przełącza na drugie. -->
-            <Button Classes="barIcon" Command="{Binding ToggleProjectionThemeCommand}" ToolTip.Tip="Tło ekranu w sali (rzutnik) — kliknij, żeby zmienić">
+            <Button Classes="barIcon" Command="{Binding ToggleProjectionThemeCommand}" ToolTip.Tip="{l:T 'Tło ekranu w sali (rzutnik) — kliknij, żeby zmienić'}">
               <StackPanel Classes="withIcon">
                 <Path Data="M2.5,4 H21.5 M4.5,4 V16 H19.5 V4 M12,16 V19 M13,7.2 A3,3 0 1 0 13,12.8 A2.3,2.3 0 0 1 13,7.2 Z"
                       IsVisible="{Binding IsProjectionDark}" />
                 <Path Data="M2.5,4 H21.5 M4.5,4 V16 H19.5 V4 M12,16 V19 M10.5,10 A1.5,1.5 0 1 1 13.5,10 A1.5,1.5 0 1 1 10.5,10 Z M12,6.5 V7 M12,13 V13.5 M8.5,10 H9 M15,10 H15.5"
                       IsVisible="{Binding !IsProjectionDark}" />
-                <TextBlock Text="Czarne tło" IsVisible="{Binding IsProjectionDark}" />
-                <TextBlock Text="Jasne tło" IsVisible="{Binding !IsProjectionDark}" />
+                <TextBlock Text="{l:T 'Czarne tło'}" IsVisible="{Binding IsProjectionDark}" />
+                <TextBlock Text="{l:T 'Jasne tło'}" IsVisible="{Binding !IsProjectionDark}" />
               </StackPanel>
             </Button>
-            <Button Classes="barIcon" Command="{Binding Remote.ShowCommand}" ToolTip.Tip="{Binding Remote.BadgeText, StringFormat='{}{0} — sparuj telefon jako pilota, przeglądarkę jako ekran albo panel na drugim komputerze'}">
+            <Button Classes="barIcon" Command="{Binding Remote.ShowCommand}">
+              <ToolTip.Tip>
+                <Binding Path="Remote.BadgeText" Converter="{x:Static l:Fmt.Instance}" ConverterParameter="{}{0} — sparuj telefon jako pilota, przeglądarkę jako ekran albo panel na drugim komputerze" />
+              </ToolTip.Tip>
               <StackPanel Classes="withIcon">
                 <Path Data="M7,2.5 H17 V21.5 H7 Z M11,18.5 H13" />
                 <TextBlock Text="{Binding Remote.BadgeText}" />
               </StackPanel>
             </Button>
-            <Button Classes="barIcon" Command="{Binding ToggleThemeCommand}" ToolTip.Tip="Wygląd okna — kliknij, żeby zmienić">
+            <Button Classes="barIcon" Command="{Binding ToggleThemeCommand}" ToolTip.Tip="{l:T 'Wygląd okna — kliknij, żeby zmienić'}">
               <StackPanel Classes="withIcon">
                 <Path Data="M20,14.5 A8.5,8.5 0 1 1 9.5,4 A6.8,6.8 0 0 0 20,14.5 Z" IsVisible="{Binding IsDarkTheme}" />
                 <Path Data="M8,12 A4,4 0 1 1 16,12 A4,4 0 1 1 8,12 Z M12,2.5 V4.5 M12,19.5 V21.5 M2.5,12 H4.5 M19.5,12 H21.5 M5.3,5.3 L6.7,6.7 M17.3,17.3 L18.7,18.7 M5.3,18.7 L6.7,17.3 M17.3,6.7 L18.7,5.3"
                       IsVisible="{Binding !IsDarkTheme}" />
-                <TextBlock Text="Ciemny wygląd" IsVisible="{Binding IsDarkTheme}" />
-                <TextBlock Text="Jasny wygląd" IsVisible="{Binding !IsDarkTheme}" />
+                <TextBlock Text="{l:T 'Ciemny wygląd'}" IsVisible="{Binding IsDarkTheme}" />
+                <TextBlock Text="{l:T 'Jasny wygląd'}" IsVisible="{Binding !IsDarkTheme}" />
               </StackPanel>
+            </Button>
+            <!-- Język interfejsu: wybór zapisuje się i uruchamia aplikację od nowa. -->
+            <Button Classes="barIcon" ToolTip.Tip="{l:T 'Język'}">
+              <StackPanel Classes="withIcon">
+                <Path Data="M12,2.5 A9.5,9.5 0 1 1 12,21.5 A9.5,9.5 0 1 1 12,2.5 Z M2.5,12 H21.5 M12,2.5 C8.5,6 8.5,18 12,21.5 M12,2.5 C15.5,6 15.5,18 12,21.5" />
+                <TextBlock Text="{Binding LanguageCode}" />
+              </StackPanel>
+              <Button.Flyout>
+                <Flyout Placement="BottomEdgeAlignedRight">
+                  <ItemsControl ItemsSource="{Binding Languages}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="loc:UiLanguage">
+                        <Button Classes="quiet" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Content="{Binding Name}"
+                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).ChangeLanguageCommand}"
+                                CommandParameter="{Binding}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </Flyout>
+              </Button.Flyout>
             </Button>
           </v:FitLabelsPanel>
 
           <!-- Aktualizacja w pozostałym miejscu, żeby w wąskim oknie zwężała się zamiast wypychać przyciski -->
           <DockPanel Margin="8,0" HorizontalAlignment="Right" IsVisible="{Binding IsUpdateAvailable}">
             <Button DockPanel.Dock="Right" Classes="primary" Command="{Binding ApplyUpdateCommand}"
-                    ToolTip.Tip="Pobrano nowszą wersję z GitHub — zainstaluj i uruchom ponownie">
-              <TextBlock Text="{Binding UpdateVersion, StringFormat='Aktualizuj do {0}'}" TextTrimming="CharacterEllipsis" />
+                    ToolTip.Tip="{l:T 'Pobrano nowszą wersję z GitHub — zainstaluj i uruchom ponownie'}">
+              <TextBlock Text="{Binding UpdateVersion, Converter={x:Static l:Fmt.Instance}, ConverterParameter='Aktualizuj do {0}'}" TextTrimming="CharacterEllipsis" />
             </Button>
             <TextBlock Classes="caption" VerticalAlignment="Center" Margin="0,0,8,0" Text="{Binding UpdateError}"
                        MaxWidth="240" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding UpdateError}"
@@ -149,12 +180,12 @@
         <Border Classes="panel" Padding="10,14">
           <DockPanel>
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="8,0,0,10" MinHeight="34">
-              <TextBlock Classes="heading" Text="Plan" VerticalAlignment="Center" />
-              <Button Grid.Column="1" Classes="addSmall" Content="+" ToolTip.Tip="Dodaj pieśń, tekst albo prezentację"
+              <TextBlock Classes="heading" Text="{l:T 'Plan'}" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Classes="addSmall" Content="+" ToolTip.Tip="{l:T 'Dodaj pieśń, tekst albo prezentację'}"
                       Click="OnPlanAddClick" IsVisible="{Binding !Plan.IsEmpty}" />
             </Grid>
-            <Button DockPanel.Dock="Top" Classes="addEmpty" Content="+ Dodaj do planu" Margin="4,4,4,0"
-                    ToolTip.Tip="Pieśń, tekst albo prezentację (można też upuścić plik prezentacji na plan)"
+            <Button DockPanel.Dock="Top" Classes="addEmpty" Content="{l:T '+ Dodaj do planu'}" Margin="4,4,4,0"
+                    ToolTip.Tip="{l:T 'Pieśń, tekst albo prezentację (można też upuścić plik prezentacji na plan)'}"
                     IsVisible="{Binding Plan.IsEmpty}" Click="OnPlanAddClick" />
             <!-- Upuszczony plik prezentacji albo obrazy = nowa prezentacja w planie. -->
             <ListBox x:Name="PlanList" ItemsSource="{Binding Plan.Items}" SelectedItem="{Binding Plan.Selected}"
@@ -162,7 +193,7 @@
               <!-- Prawy klik w pustym miejscu listy. -->
               <ListBox.ContextMenu>
                 <ContextMenu>
-                  <MenuItem Header="Dodaj" Click="OnPlanAddClick">
+                  <MenuItem Header="{l:T 'Dodaj'}" Click="OnPlanAddClick">
                     <MenuItem.Icon><Path Classes="menuIcon" Data="M8,3 V13 M3,8 H13" /></MenuItem.Icon>
                   </MenuItem>
                 </ContextMenu>
@@ -173,24 +204,24 @@
                     <!-- Pieśń dodana właśnie z telefonu: obwódka na kilka sekund, żeby operator ją zauważył. -->
                     <Border Grid.ColumnSpan="2" Margin="-6,-2" CornerRadius="8" BorderThickness="1.5"
                             BorderBrush="{DynamicResource ChordBrush}" IsVisible="{Binding IsAddedRemotely}"
-                            ToolTip.Tip="Dodane z telefonu" />
+                            ToolTip.Tip="{l:T 'Dodane z telefonu'}" />
                     <!-- Prawy klik na pozycji planu. -->
                     <Grid.ContextMenu>
                       <ContextMenu>
-                        <MenuItem Header="Pokaż na ekranie" Click="OnPlanMenuShow">
+                        <MenuItem Header="{l:T 'Pokaż na ekranie'}" Click="OnPlanMenuShow">
                           <MenuItem.Icon><Path Classes="menuIcon" Data="M2,3 H14 V11 H2 Z M6,14 H10 M8,11 V14" /></MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Dodaj powyżej" Click="OnPlanMenuAddBefore">
+                        <MenuItem Header="{l:T 'Dodaj powyżej'}" Click="OnPlanMenuAddBefore">
                           <MenuItem.Icon><Path Classes="menuIcon" Data="M3,13 H13 M8,3 V9 M5,6 H11" /></MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Dodaj poniżej" Click="OnPlanMenuAddAfter">
+                        <MenuItem Header="{l:T 'Dodaj poniżej'}" Click="OnPlanMenuAddAfter">
                           <MenuItem.Icon><Path Classes="menuIcon" Data="M3,3 H13 M8,7 V13 M5,10 H11" /></MenuItem.Icon>
                         </MenuItem>
-                        <MenuItem Header="Duplikuj" Click="OnPlanMenuDuplicate">
+                        <MenuItem Header="{l:T 'Duplikuj'}" Click="OnPlanMenuDuplicate">
                           <MenuItem.Icon><Path Classes="menuIcon" Data="M5.5,5.5 H13.5 V13.5 H5.5 Z M3,10.5 V2.5 H10.5" /></MenuItem.Icon>
                         </MenuItem>
                         <Separator />
-                        <MenuItem Header="Usuń z planu" Click="OnPlanMenuRemove" Classes="danger">
+                        <MenuItem Header="{l:T 'Usuń z planu'}" Click="OnPlanMenuRemove" Classes="danger">
                           <MenuItem.Icon><Path Classes="menuIcon" Data="{StaticResource DeleteIcon}" /></MenuItem.Icon>
                         </MenuItem>
                       </ContextMenu>
@@ -212,12 +243,12 @@
                                      Text="{Binding Title}" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
                           <TextBlock Classes="caption" Text="{Binding Note}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Note}"
                                      IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                          <TextBlock Classes="caption" Text="Dodane z telefonu" Foreground="{DynamicResource ChordBrush}"
+                          <TextBlock Classes="caption" Text="{l:T 'Dodane z telefonu'}" Foreground="{DynamicResource ChordBrush}"
                                      IsVisible="{Binding IsAddedRemotely}" />
                         </StackPanel>
                       </Grid>
                     </Button>
-                    <Button Grid.Column="1" Classes="quiet removeItem" Content="✕" ToolTip.Tip="Usuń z planu" VerticalAlignment="Center"
+                    <Button Grid.Column="1" Classes="quiet removeItem" Content="✕" ToolTip.Tip="{l:T 'Usuń z planu'}" VerticalAlignment="Center"
                             Command="{Binding $parent[ListBox].((vm:MainViewModel)DataContext).Plan.RequestRemoveCommand}" CommandParameter="{Binding}" />
                     <!-- Miejsce upuszczenia przy zmianie kolejności -->
                     <Border Grid.ColumnSpan="2" Classes="dropMarker" VerticalAlignment="Top" Margin="0,-6,0,0"
@@ -240,9 +271,9 @@
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
               <TextBlock Classes="heading" Text="{Binding Preview.ColumnTitle}" VerticalAlignment="Top" />
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" IsVisible="{Binding Preview.IsViewing}">
-                <Button Classes="quiet liveHeaderAction" Content="Edytuj" Command="{Binding Preview.EditCommand}"
+                <Button Classes="quiet liveHeaderAction" Content="{l:T 'Edytuj'}" Command="{Binding Preview.EditCommand}"
                         IsVisible="{Binding Preview.HasSong}" />
-                <ToggleButton Classes="chip liveHeaderAction" Content="Akordy" IsChecked="{Binding ShowChords, Mode=OneWay}"
+                <ToggleButton Classes="chip liveHeaderAction" Content="{l:T 'Akordy'}" IsChecked="{Binding ShowChords, Mode=OneWay}"
                               Command="{Binding ToggleChordsCommand}" IsVisible="{Binding Preview.HasChordsToggle}" />
               </StackPanel>
             </Grid>
@@ -261,7 +292,7 @@
               <Panel IsVisible="{Binding Preview.IsViewing}">
               <TextBlock Classes="bodyMuted" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center"
                          IsVisible="{Binding Preview.IsEmpty}" TextAlignment="Center"
-                         Text="Wybierz pozycję w planie." />
+                         Text="{l:T 'Wybierz pozycję w planie.'}" />
 
               <!-- Prezentacja: slajdy jako miniatury; przygotowanie (PowerPoint) trwa w tle. -->
               <ContentControl Content="{Binding Preview.Presentation}" IsVisible="{Binding Preview.HasPresentation}">
@@ -276,13 +307,13 @@
                                        IsVisible="{Binding Summary, Converter={x:Static ObjectConverters.IsNotNull}}" />
                             <TextBlock Classes="caption" Classes.failed="{Binding IsFailed}" Text="{Binding Note}" TextWrapping="Wrap"
                                        VerticalAlignment="Center" IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                            <Button Classes="quiet" Content="Spróbuj ponownie" Command="{Binding RetryCommand}" IsVisible="{Binding IsFailed}" />
+                            <Button Classes="quiet" Content="{l:T 'Spróbuj ponownie'}" Command="{Binding RetryCommand}" IsVisible="{Binding IsFailed}" />
                           </StackPanel>
                         </StackPanel>
                         <!-- Przejście między slajdami prezentacji (tylko przy kilku): jak w planie albo własne (jak przy pieśni). -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="12,0,0,0" IsVisible="{Binding HasSeveralSlides}">
                           <Button Classes="quiet" HorizontalAlignment="Right"
-                                  ToolTip.Tip="Przejście na rzutniku między slajdami tej prezentacji">
+                                  ToolTip.Tip="{l:T 'Przejście na rzutniku między slajdami tej prezentacji'}">
                             <TextBlock Text="{Binding SlideTransitions.ButtonText}" />
                             <Button.Flyout>
                               <Flyout Placement="BottomEdgeAlignedRight">
@@ -322,7 +353,7 @@
                     <StackPanel>
                       <TextBlock Classes="songTitle" Text="{Binding Title}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
                       <TextBlock Classes="caption" Text="{Binding File}" TextWrapping="Wrap" />
-                      <TextBlock Classes="caption failed" Text="Nie ma tego pliku. Gdy wróci na swoje miejsce (np. podłączony pendrive), film będzie gotowy sam." TextWrapping="Wrap"
+                      <TextBlock Classes="caption failed" Text="{l:T 'Nie ma tego pliku. Gdy wróci na swoje miejsce (np. podłączony pendrive), film będzie gotowy sam.'}" TextWrapping="Wrap"
                                  Margin="0,8,0,0" IsVisible="{Binding IsMissing}" />
                       <TextBlock Classes="caption failed" Text="{Binding Unavailable}" TextWrapping="Wrap" Margin="0,8,0,0"
                                  IsVisible="{Binding Unavailable, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -346,41 +377,41 @@
               <!-- Kiosk: elementy zmieniają się same co kilka sekund; każda zmiana od razu w planie (i na ekranie). -->
               <DockPanel IsVisible="{Binding Preview.HasKiosk}">
                 <Grid DockPanel.Dock="Top" ColumnDefinitions="*,16,Auto">
-                  <TextBox Classes="kioskTitle" Text="{Binding Preview.Kiosk.Title, UpdateSourceTrigger=LostFocus}" PlaceholderText="Nazwa kiosku" />
+                  <TextBox Classes="kioskTitle" Text="{Binding Preview.Kiosk.Title, UpdateSourceTrigger=LostFocus}" PlaceholderText="{l:T 'Nazwa kiosku'}" />
                   <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
-                              ToolTip.Tip="Co ile sekund następny element">
-                    <TextBlock Classes="caption" Text="Zmiana co" VerticalAlignment="Center" />
+                              ToolTip.Tip="{l:T 'Co ile sekund następny element'}">
+                    <TextBlock Classes="caption" Text="{l:T 'Zmiana co'}" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding Preview.Kiosk.Seconds}" Minimum="2" Maximum="600" Increment="1"
                                    FormatString="0" Width="118" />
-                    <TextBlock Classes="caption" Text="s" VerticalAlignment="Center" />
+                    <TextBlock Classes="caption" Text="{l:T 's'}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Grid>
                 <!-- Przejście między elementami: żaden efekt = przenikanie, jeden = zawsze ten, kilka = losowo jeden z nich. -->
                 <StackPanel DockPanel.Dock="Top" Margin="0,12,0,0" Spacing="6">
                   <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Classes="caption" Text="Przejście" VerticalAlignment="Center"
-                               ToolTip.Tip="Kilka zaznaczonych — za każdym razem losowo jeden" />
-                    <CheckBox Grid.Column="1" Content="Powolny zoom zdjęć" IsChecked="{Binding Preview.Kiosk.SlowZoom}" />
+                    <TextBlock Classes="caption" Text="{l:T 'Przejście'}" VerticalAlignment="Center"
+                               ToolTip.Tip="{l:T 'Kilka zaznaczonych — za każdym razem losowo jeden'}" />
+                    <CheckBox Grid.Column="1" Content="{l:T 'Powolny zoom zdjęć'}" IsChecked="{Binding Preview.Kiosk.SlowZoom}" />
                   </Grid>
                   <ContentControl Content="{Binding Preview.Kiosk.Transitions}" />
                 </StackPanel>
                 <WrapPanel DockPanel.Dock="Bottom" ItemSpacing="8" LineSpacing="8" Margin="0,12,0,0">
-                  <Button Classes="addKind" Click="OnKioskAddImagesClick" ToolTip.Tip="Każdy obraz osobnym elementem">
+                  <Button Classes="addKind" Click="OnKioskAddImagesClick" ToolTip.Tip="{l:T 'Każdy obraz osobnym elementem'}">
                     <StackPanel>
                       <Path Data="M3,5 H21 V19 H3 Z M3,16 L9,10 L14,15 L17,12 L21,16 M15,8 A1.5,1.5 0 1 1 18,8 A1.5,1.5 0 1 1 15,8 Z" />
-                      <TextBlock Text="Obraz" />
+                      <TextBlock Text="{l:T 'Obraz'}" />
                     </StackPanel>
                   </Button>
-                  <Button Classes="addKind" Command="{Binding Preview.Kiosk.AddTextCommand}" ToolTip.Tip="Sam napis, z tytułem albo bez">
+                  <Button Classes="addKind" Command="{Binding Preview.Kiosk.AddTextCommand}" ToolTip.Tip="{l:T 'Sam napis, z tytułem albo bez'}">
                     <StackPanel>
                       <Path Data="M4,6 H20 M4,10 H20 M4,14 H14 M4,18 H17" />
-                      <TextBlock Text="Napis" />
+                      <TextBlock Text="{l:T 'Napis'}" />
                     </StackPanel>
                   </Button>
-                  <Button Classes="addKind" Click="OnKioskAddPresentationClick" ToolTip.Tip="Plik PowerPoint — każdy slajd osobnym elementem">
+                  <Button Classes="addKind" Click="OnKioskAddPresentationClick" ToolTip.Tip="{l:T 'Plik PowerPoint — każdy slajd osobnym elementem'}">
                     <StackPanel>
                       <Path Data="M3,4 H21 V15 H3 Z M12,15 V19 M8,20 H16" />
-                      <TextBlock Text="Prezentacja" />
+                      <TextBlock Text="{l:T 'Prezentacja'}" />
                     </StackPanel>
                   </Button>
                 </WrapPanel>
@@ -388,7 +419,7 @@
                            IsVisible="{Binding Preview.Kiosk.Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 <Panel Margin="0,14,0,0">
                   <TextBlock Classes="bodyMuted" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
-                             IsVisible="{Binding Preview.Kiosk.IsEmpty}" Text="Dodaj obrazy, napisy albo prezentację." />
+                             IsVisible="{Binding Preview.Kiosk.IsEmpty}" Text="{l:T 'Dodaj obrazy, napisy albo prezentację.'}" />
                   <ScrollViewer>
                     <ItemsControl x:Name="KioskEntriesList" ItemsSource="{Binding Preview.Kiosk.Entries}" Margin="0,0,12,0">
                       <ItemsControl.ItemTemplate>
@@ -404,13 +435,13 @@
                                   <Image Source="{Binding Thumbnail^}" Stretch="Uniform" />
                                 </Border>
                                 <StackPanel Grid.Column="2" Spacing="6">
-                                  <TextBox Text="{Binding Title, UpdateSourceTrigger=LostFocus}" PlaceholderText="Tytuł (opcjonalnie)" />
+                                  <TextBox Text="{Binding Title, UpdateSourceTrigger=LostFocus}" PlaceholderText="{l:T 'Tytuł (opcjonalnie)'}" />
                                   <TextBox Text="{Binding Text, UpdateSourceTrigger=LostFocus}" PlaceholderText="{Binding TextHint}"
                                            AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
                                   <TextBlock Classes="caption" Classes.failed="{Binding IsFailed}" Text="{Binding Note}" TextWrapping="Wrap"
                                              IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
                                 </StackPanel>
-                                <Button Grid.Column="3" Classes="quiet removeItem" Content="✕" ToolTip.Tip="Usuń z kiosku" VerticalAlignment="Top"
+                                <Button Grid.Column="3" Classes="quiet removeItem" Content="✕" ToolTip.Tip="{l:T 'Usuń z kiosku'}" VerticalAlignment="Top"
                                         Margin="6,0,0,0"
                                         Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).Preview.Kiosk.RemoveCommand}"
                                         CommandParameter="{Binding}" />
@@ -448,7 +479,7 @@
                       </MultiBinding>
                     </StackPanel.IsVisible>
                     <Button Classes="quiet" HorizontalAlignment="Right"
-                            ToolTip.Tip="Przejście na rzutniku między slajdami tej pozycji">
+                            ToolTip.Tip="{l:T 'Przejście na rzutniku między slajdami tej pozycji'}">
                       <TextBlock Text="{Binding Preview.SlideTransitions.ButtonText}" />
                       <Button.Flyout>
                         <Flyout Placement="BottomEdgeAlignedRight">
@@ -470,11 +501,11 @@
                                 HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,0,0,8" Padding="14,10">
                           <Border.ContextMenu>
                             <ContextMenu>
-                              <MenuItem Header="Powtórz" Click="OnPartDuplicate"
+                              <MenuItem Header="{l:T 'Powtórz'}" Click="OnPartDuplicate"
                                         IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).Preview.CanReorderParts}">
                                 <MenuItem.Icon><Path Classes="menuIcon" Data="M2.5,8 V6.5 A3,3 0 0 1 5.5,3.5 H13 M10.5,1 L13,3.5 L10.5,6 M13.5,8 V9.5 A3,3 0 0 1 10.5,12.5 H3 M5.5,15 L3,12.5 L5.5,10" /></MenuItem.Icon>
                               </MenuItem>
-                              <MenuItem Header="Usuń" Click="OnPartRemove" Classes="danger">
+                              <MenuItem Header="{l:T 'Usuń'}" Click="OnPartRemove" Classes="danger">
                                 <MenuItem.Icon><Path Classes="menuIcon" Data="{StaticResource DeleteIcon}" /></MenuItem.Icon>
                               </MenuItem>
                             </ContextMenu>
@@ -489,10 +520,10 @@
                                            IsVisible="{Binding $parent[Window].((vm:MainViewModel)DataContext).Preview.CanReorderParts}" />
                                 <TextBlock Classes="caption" FontWeight="SemiBold" Text="{Binding Name}" VerticalAlignment="Center" />
                               </StackPanel>
-                              <Button Grid.Column="1" Classes="quiet partMenu" Content="⋯" ToolTip.Tip="Powtórz albo usuń"
+                              <Button Grid.Column="1" Classes="quiet partMenu" Content="⋯" ToolTip.Tip="{l:T 'Powtórz albo usuń'}"
                                       Click="OnPartMenuClick" Margin="0,0,6,0" />
                               <CheckBox Grid.Column="2" IsChecked="{Binding IsIncluded}" MinWidth="0" Padding="0"
-                                        ToolTip.Tip="Śpiewamy tę część" />
+                                        ToolTip.Tip="{l:T 'Śpiewamy tę część'}" />
                             </Grid>
                             <ItemsControl Classes="partLines" ItemsSource="{Binding Lines}">
                               <ItemsControl.ItemTemplate>
@@ -513,7 +544,7 @@
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
-                  <Button Classes="addEmpty" Content="+ Przywróć usuniętą część" Click="OnAddPartClick" Margin="0,2,0,0"
+                  <Button Classes="addEmpty" Content="{l:T '+ Przywróć usuniętą część'}" Click="OnAddPartClick" Margin="0,2,0,0"
                           IsVisible="{Binding Preview.HasRemovedSections}" />
                   </StackPanel>
                 </ScrollViewer>
@@ -530,9 +561,9 @@
         <Border x:Name="LiveColumn" Grid.Column="4" Classes="panel">
           <DockPanel>
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-              <TextBlock Classes="heading" Text="Na ekranie" VerticalAlignment="Top" />
+              <TextBlock Classes="heading" Text="{l:T 'Na ekranie'}" VerticalAlignment="Top" />
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                <ToggleButton Classes="chip liveHeaderAction" Content="Akordy" IsChecked="{Binding ShowChords, Mode=OneWay}"
+                <ToggleButton Classes="chip liveHeaderAction" Content="{l:T 'Akordy'}" IsChecked="{Binding ShowChords, Mode=OneWay}"
                               Command="{Binding ToggleChordsCommand}" />
               </StackPanel>
             </Grid>
@@ -546,13 +577,13 @@
                          Height="5" Margin="0,8,0,0" Foreground="{DynamicResource CandleBrush}" IsVisible="{Binding Live.HasItem}" />
 
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,8,*" Margin="0,12,0,0" IsVisible="{Binding Live.HasItem}">
-              <Button Classes="big" Content="Wstecz" Command="{Binding Live.PreviousCommand}" ToolTip.Tip="Backspace, ←, PageUp" />
-              <Button Grid.Column="2" Classes="big primary" Content="Dalej" Command="{Binding Live.NextCommand}" ToolTip.Tip="Spacja, →, PageDown" />
+              <Button Classes="big" Content="{l:T 'Wstecz'}" Command="{Binding Live.PreviousCommand}" ToolTip.Tip="Backspace, ←, PageUp" />
+              <Button Grid.Column="2" Classes="big primary" Content="{l:T 'Dalej'}" Command="{Binding Live.NextCommand}" ToolTip.Tip="{l:T 'Spacja, →, PageDown'}" />
             </Grid>
 
             <!-- Pusty ekran: bez przycisków i ramek, które nie miałyby czego pokazywać. -->
             <Panel>
-              <TextBlock Classes="bodyMuted" Text="Ekran jest pusty" HorizontalAlignment="Center" VerticalAlignment="Center"
+              <TextBlock Classes="bodyMuted" Text="{l:T 'Ekran jest pusty'}" HorizontalAlignment="Center" VerticalAlignment="Center"
                          IsVisible="{Binding !Live.HasItem}" />
               <ScrollViewer Margin="0,12,0,0" IsVisible="{Binding Live.HasItem}">
                 <StackPanel Spacing="12">
@@ -598,15 +629,15 @@
                                 Value="{Binding Live.Video.PositionSeconds}" Focusable="False" />
                         <Grid ColumnDefinitions="Auto,12,*,8,Auto">
                           <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                            <Button Classes="videoSkip" Content="−15 s" Command="{Binding Live.Video.SkipBackCommand}" ToolTip.Tip="15 sekund wstecz" />
+                            <Button Classes="videoSkip" Content="{l:T '−15 s'}" Command="{Binding Live.Video.SkipBackCommand}" ToolTip.Tip="{l:T '15 sekund wstecz'}" />
                             <Button Classes="videoPlay" Command="{Binding Live.Video.TogglePauseCommand}"
-                                    ToolTip.Tip="Pauza / odtwarzanie (spacja albo kliknięcie w film)">
+                                    ToolTip.Tip="{l:T 'Pauza / odtwarzanie (spacja albo kliknięcie w film)'}">
                               <Panel>
                                 <Path Data="M3,2 L5.6,2 L5.6,14 L3,14 Z M10.4,2 L13,2 L13,14 L10.4,14 Z" IsVisible="{Binding Live.Video.IsPlaying}" />
                                 <Path Data="M4.5,2 L14,8 L4.5,14 Z" IsVisible="{Binding !Live.Video.IsPlaying}" />
                               </Panel>
                             </Button>
-                            <Button Classes="videoSkip" Content="+15 s" Command="{Binding Live.Video.SkipForwardCommand}" ToolTip.Tip="15 sekund do przodu" />
+                            <Button Classes="videoSkip" Content="{l:T '+15 s'}" Command="{Binding Live.Video.SkipForwardCommand}" ToolTip.Tip="{l:T '15 sekund do przodu'}" />
                           </StackPanel>
                           <TextBlock Grid.Column="2" Classes="caption videoTime" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                             <Run Text="{Binding Live.Video.PositionText}" Foreground="{DynamicResource TextBrush}" />
@@ -614,15 +645,15 @@
                             <Run Text="{Binding Live.Video.DurationText}" />
                           </TextBlock>
                           <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center"
-                                      ToolTip.Tip="Obraz względem dźwięku — gdy rzutnik spóźnia obraz ( [ / ] )">
-                            <TextBlock Classes="caption" Text="Obraz" VerticalAlignment="Center" Margin="0,0,4,0" />
-                            <Button Classes="videoStep" Command="{Binding Live.Video.PictureEarlierCommand}" ToolTip.Tip="Obraz wcześniej o 0,1 s ( [ )">
+                                      ToolTip.Tip="{l:T 'Obraz względem dźwięku — gdy rzutnik spóźnia obraz ( [ / ] )'}">
+                            <TextBlock Classes="caption" Text="{l:T 'Obraz'}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                            <Button Classes="videoStep" Command="{Binding Live.Video.PictureEarlierCommand}" ToolTip.Tip="{l:T 'Obraz wcześniej o 0,1 s ( [ )'}">
                               <Path Data="M10,3 L5,8 L10,13" />
                             </Button>
                             <Button Classes="videoOffset" Classes.set="{Binding Live.Video.HasPictureOffset}"
                                     Content="{Binding Live.Video.PictureOffsetText}" Command="{Binding Live.Video.ResetPictureOffsetCommand}"
-                                    ToolTip.Tip="Kliknij, żeby wyzerować" />
-                            <Button Classes="videoStep" Command="{Binding Live.Video.PictureLaterCommand}" ToolTip.Tip="Obraz później o 0,1 s ( ] )">
+                                    ToolTip.Tip="{l:T 'Kliknij, żeby wyzerować'}" />
+                            <Button Classes="videoStep" Command="{Binding Live.Video.PictureLaterCommand}" ToolTip.Tip="{l:T 'Obraz później o 0,1 s ( ] )'}">
                               <Path Data="M6,3 L11,8 L6,13" />
                             </Button>
                           </StackPanel>
@@ -630,8 +661,8 @@
                         <Border IsVisible="{Binding Live.Video.IsPromptVisible}" Background="{DynamicResource CandleSoftBrush}"
                                 CornerRadius="8" Padding="12,8">
                           <StackPanel>
-                            <TextBlock Classes="bodyStrong" Text="Przytrzymaj „do tyłu” — poprzednia pozycja planu" />
-                            <TextBlock Classes="bodyStrong" Text="Przytrzymaj „do przodu” — następna pozycja planu" />
+                            <TextBlock Classes="bodyStrong" Text="{l:T 'Przytrzymaj „do tyłu” — poprzednia pozycja planu'}" />
+                            <TextBlock Classes="bodyStrong" Text="{l:T 'Przytrzymaj „do przodu” — następna pozycja planu'}" />
                           </StackPanel>
                         </Border>
                         <TextBlock Classes="caption failed" Text="{Binding Live.Video.Error}" TextWrapping="Wrap"
@@ -656,7 +687,7 @@
                           IsVisible="{Binding Live.HasUpcoming}">
                     <StackPanel>
                       <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,8">
-                        <TextBlock Classes="overline" Foreground="{DynamicResource MutedBrush}" Text="NASTĘPNA" />
+                        <TextBlock Classes="overline" Foreground="{DynamicResource MutedBrush}" Text="{l:T 'NASTĘPNA'}" />
                         <TextBlock Grid.Column="1" Classes="caption" FontWeight="SemiBold" Text="{Binding Live.UpcomingLabel}"
                                    HorizontalAlignment="Right" />
                       </Grid>
@@ -695,59 +726,59 @@
       <Border Classes="panel dialog" Width="780" MaxHeight="640" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,96,0,24">
         <DockPanel>
           <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-            <TextBlock Classes="heading" Text="Dodaj do planu" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Classes="quiet closeButton" Content="✕" ToolTip.Tip="Zamknij" Command="{Binding PlanAdd.CloseCommand}" />
+            <TextBlock Classes="heading" Text="{l:T 'Dodaj do planu'}" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="quiet closeButton" Content="✕" ToolTip.Tip="{l:T 'Zamknij'}" Command="{Binding PlanAdd.CloseCommand}" />
           </Grid>
           <TextBox x:Name="PlanAddBox" DockPanel.Dock="Top" Classes="search" Text="{Binding PlanAdd.Query}" Margin="0,0,0,10"
                    IsVisible="{Binding !PlanAdd.IsChoosingWindow}"
-                   PlaceholderText="Szukaj pieśni lub tekstu: numer albo słowa" />
+                   PlaceholderText="{l:T 'Szukaj pieśni lub tekstu: numer albo słowa'}" />
           <!-- Nowa pozycja: każdy rodzaj z własną ikoną (cały rząd to dodawanie, więc bez „+”). -->
           <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,12,Auto" Margin="0,12,0,0">
             <WrapPanel ItemSpacing="8" LineSpacing="8">
-              <Button Classes="addKind" Command="{Binding PlanAdd.NewSongCommand}" ToolTip.Tip="Nowa pieśń z akordami">
+              <Button Classes="addKind" Command="{Binding PlanAdd.NewSongCommand}" ToolTip.Tip="{l:T 'Nowa pieśń z akordami'}">
                 <StackPanel>
                   <Path Data="M9,18 A3,3 0 1 1 3,18 A3,3 0 1 1 9,18 Z M9,18 V5 L20,3 V16 M20,16 A3,3 0 1 1 14,16 A3,3 0 1 1 20,16 Z" />
-                  <TextBlock Text="Nowa pieśń" />
+                  <TextBlock Text="{l:T 'Nowa pieśń'}" />
                 </StackPanel>
               </Button>
-              <Button Classes="addKind" Command="{Binding PlanAdd.NewTextCommand}" ToolTip.Tip="Część Mszy, modlitwa, ogłoszenie">
+              <Button Classes="addKind" Command="{Binding PlanAdd.NewTextCommand}" ToolTip.Tip="{l:T 'Część Mszy, modlitwa, ogłoszenie'}">
                 <StackPanel>
                   <Path Data="M4,6 H20 M4,10 H20 M4,14 H14 M4,18 H17" />
-                  <TextBlock Text="Nowy tekst" />
+                  <TextBlock Text="{l:T 'Nowy tekst'}" />
                 </StackPanel>
               </Button>
-              <Button Classes="addKind" Click="OnAddPresentationClick" ToolTip.Tip="Plik PowerPoint albo kilka obrazów jako slajdy">
+              <Button Classes="addKind" Click="OnAddPresentationClick" ToolTip.Tip="{l:T 'Plik PowerPoint albo kilka obrazów jako slajdy'}">
                 <StackPanel>
                   <Path Data="M3,4 H21 V15 H3 Z M12,15 V19 M8,20 H16" />
-                  <TextBlock Text="Prezentacja" />
+                  <TextBlock Text="{l:T 'Prezentacja'}" />
                 </StackPanel>
               </Button>
-              <Button Classes="addKind" Click="OnAddImagesClick" ToolTip.Tip="Każdy obraz osobno, na cały ekran">
+              <Button Classes="addKind" Click="OnAddImagesClick" ToolTip.Tip="{l:T 'Każdy obraz osobno, na cały ekran'}">
                 <StackPanel>
                   <Path Data="M3,5 H21 V19 H3 Z M3,16 L9,10 L14,15 L17,12 L21,16 M15,8 A1.5,1.5 0 1 1 18,8 A1.5,1.5 0 1 1 15,8 Z" />
-                  <TextBlock Text="Obraz" />
+                  <TextBlock Text="{l:T 'Obraz'}" />
                 </StackPanel>
               </Button>
-              <Button Classes="addKind" Click="OnAddVideoClick" ToolTip.Tip="mp4, mkv, avi, mov… — plik zostaje na swoim miejscu">
+              <Button Classes="addKind" Click="OnAddVideoClick" ToolTip.Tip="{l:T 'mp4, mkv, avi, mov… — plik zostaje na swoim miejscu'}">
                 <StackPanel>
                   <Path Data="M3,5 H21 V19 H3 Z M10,9 L15,12 L10,15 Z" />
-                  <TextBlock Text="Film" />
+                  <TextBlock Text="{l:T 'Film'}" />
                 </StackPanel>
               </Button>
-              <Button Classes="addKind" Command="{Binding PlanAdd.NewKioskCommand}" ToolTip.Tip="Obrazy i napisy zmieniające się same co kilka sekund">
+              <Button Classes="addKind" Command="{Binding PlanAdd.NewKioskCommand}" ToolTip.Tip="{l:T 'Obrazy i napisy zmieniające się same co kilka sekund'}">
                 <StackPanel>
                   <Path Data="M7,4 H21 V15 M3,8 H17 V20 H3 Z" />
-                  <TextBlock Text="Kiosk" />
+                  <TextBlock Text="{l:T 'Kiosk'}" />
                 </StackPanel>
               </Button>
-              <Button Classes="addKind" Command="{Binding PlanAdd.ChooseWindowCommand}" ToolTip.Tip="Obraz okna innego programu, np. „Ekran bezprzewodowy”">
+              <Button Classes="addKind" Command="{Binding PlanAdd.ChooseWindowCommand}" ToolTip.Tip="{l:T 'Obraz okna innego programu, np. „Ekran bezprzewodowy”'}">
                 <StackPanel>
                   <Path Data="M3,4 H21 V19 H3 Z M3,8 H21" />
-                  <TextBlock Text="Aplikacja" />
+                  <TextBlock Text="{l:T 'Aplikacja'}" />
                 </StackPanel>
               </Button>
             </WrapPanel>
-            <Button Grid.Column="2" Classes="primary" Content="Wybierz" Command="{Binding PlanAdd.AddCommand}" VerticalAlignment="Bottom"
+            <Button Grid.Column="2" Classes="primary" Content="{l:T 'Wybierz'}" Command="{Binding PlanAdd.AddCommand}" VerticalAlignment="Bottom"
                     CommandParameter="{x:Null}" IsEnabled="{Binding PlanAdd.HasSelection}" IsVisible="{Binding !PlanAdd.IsChoosingWindow}" />
           </Grid>
           <TextBlock DockPanel.Dock="Bottom" Classes="caption failed" Text="{Binding PlanAdd.Error}" TextWrapping="Wrap" Margin="0,10,0,0"
@@ -755,11 +786,11 @@
           <!-- „Aplikacja”: otwarte okna programów zamiast wyszukiwarki; kliknięcie dodaje pozycję. -->
           <DockPanel DockPanel.Dock="Top" IsVisible="{Binding PlanAdd.IsChoosingWindow}" Height="420">
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
-              <TextBlock Classes="bodyStrong" Text="Który program pokazywać?" VerticalAlignment="Center" />
-              <Button Grid.Column="1" Content="Wróć" Command="{Binding PlanAdd.CancelWindowCommand}" />
+              <TextBlock Classes="bodyStrong" Text="{l:T 'Który program pokazywać?'}" VerticalAlignment="Center" />
+              <Button Grid.Column="1" Content="{l:T 'Wróć'}" Command="{Binding PlanAdd.CancelWindowCommand}" />
             </Grid>
             <Panel>
-              <TextBlock Classes="bodyMuted" Text="Brak otwartych okien" HorizontalAlignment="Center" VerticalAlignment="Center"
+              <TextBlock Classes="bodyMuted" Text="{l:T 'Brak otwartych okien'}" HorizontalAlignment="Center" VerticalAlignment="Center"
                          IsVisible="{Binding !PlanAdd.HasWindows}" />
               <ScrollViewer>
                 <ItemsControl ItemsSource="{Binding PlanAdd.Windows}">
@@ -803,14 +834,14 @@
     <Border ZIndex="100" Background="{DynamicResource ScrimBrush}" IsVisible="{Binding Plan.IsRemoveConfirmationOpen}">
       <Border Classes="panel dialog" Width="400" VerticalAlignment="Center" HorizontalAlignment="Center">
         <StackPanel Spacing="6">
-          <TextBlock Classes="heading" Text="Usunąć z planu?" />
+          <TextBlock Classes="heading" Text="{l:T 'Usunąć z planu?'}" />
           <StackPanel Orientation="Horizontal" Spacing="10">
             <TextBlock Classes="number" Text="{Binding Plan.PendingRemoval.Number}" VerticalAlignment="Center" />
             <TextBlock Classes="bodyStrong" Text="{Binding Plan.PendingRemoval.Title}" TextWrapping="Wrap" MaxWidth="320" />
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,18,0,0">
-            <Button Content="Anuluj" Command="{Binding Plan.CancelRemoveCommand}" />
-            <Button Classes="danger" Content="Usuń" Command="{Binding Plan.ConfirmRemoveCommand}" />
+            <Button Content="{l:T 'Anuluj'}" Command="{Binding Plan.CancelRemoveCommand}" />
+            <Button Classes="danger" Content="{l:T 'Usuń'}" Command="{Binding Plan.ConfirmRemoveCommand}" />
           </StackPanel>
         </StackPanel>
       </Border>

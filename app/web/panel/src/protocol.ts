@@ -33,6 +33,8 @@ export interface StateMessage {
   /** Klucz obrazu slajdu (prezentacja) do polecenia „image”; następnego slajdu — `nextImage`. */
   image?: string | null;
   nextImage?: string | null;
+  /** Język interfejsu aplikacji: "pl" | "en" | "hu" | "hr" — panel mówi tym samym. */
+  language?: string;
 }
 
 export type ItemKind = "song" | "text" | "presentation" | "video" | "kiosk" | "app";

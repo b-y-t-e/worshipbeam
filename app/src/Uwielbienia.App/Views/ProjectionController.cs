@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Uwielbienia.App.Services;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Views;
 
@@ -21,17 +22,17 @@ public sealed class ProjectionController(Func<ProjectionWindow> createWindow) : 
 
     public string Status => Mode switch
     {
-        ProjectionMode.SecondScreen => $"Projekcja: {Describe(_screen)}",
-        ProjectionMode.SameScreen => "Projekcja: ten ekran",
-        _ => "Włącz projekcję",
+        ProjectionMode.SecondScreen => Tr.F("Projekcja: {0}", Describe(_screen)),
+        ProjectionMode.SameScreen => Tr.T("Projekcja: ten ekran"),
+        _ => Tr.T("Włącz projekcję"),
     };
 
     public string Hint => Mode switch
     {
-        ProjectionMode.SecondScreen => "Wyłącz projekcję (F5)",
-        ProjectionMode.SameScreen => "Esc wraca do okna operatora, F5 wyłącza projekcję",
-        _ when HasSecondScreen => "Pełny ekran na drugim monitorze (F5)",
-        _ => "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)",
+        ProjectionMode.SecondScreen => Tr.T("Wyłącz projekcję (F5)"),
+        ProjectionMode.SameScreen => Tr.T("Esc wraca do okna operatora, F5 wyłącza projekcję"),
+        _ when HasSecondScreen => Tr.T("Pełny ekran na drugim monitorze (F5)"),
+        _ => Tr.T("Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)"),
     };
 
     public event EventHandler? Changed;

@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 namespace Uwielbienia.Core.Presentation;
 
 /// <summary>
@@ -50,21 +51,21 @@ public static class SlideTransitions
     /// <summary>Opis wyboru: „przenikanie”, „brak efektu”, nazwa efektu albo „losowe (n)”.</summary>
     public static string Describe(IReadOnlyList<SlideTransition> chosen) => chosen.Count switch
     {
-        0 => "przenikanie",
-        1 when chosen[0] == SlideTransition.None => "brak efektu",
+        0 => Tr.T("przenikanie"),
+        1 when chosen[0] == SlideTransition.None => Tr.T("brak efektu"),
         1 => Name(chosen[0]),
-        var n => $"losowe ({n})",
+        var n => Tr.F("losowe ({0})", n),
     };
 
     public static string Name(SlideTransition transition) => transition switch
     {
-        SlideTransition.Slide => "Przesunięcie",
-        SlideTransition.StainedGlass => "Witraż",
-        SlideTransition.Flame => "Płomień",
-        SlideTransition.Watercolor => "Akwarela",
-        SlideTransition.LightRay => "Promień światła",
-        SlideTransition.Ripple => "Fala",
-        SlideTransition.None => "Brak efektu",
+        SlideTransition.Slide => Tr.T("Przesunięcie"),
+        SlideTransition.StainedGlass => Tr.T("Witraż"),
+        SlideTransition.Flame => Tr.T("Płomień"),
+        SlideTransition.Watercolor => Tr.T("Akwarela"),
+        SlideTransition.LightRay => Tr.T("Promień światła"),
+        SlideTransition.Ripple => Tr.T("Fala"),
+        SlideTransition.None => Tr.T("Brak efektu"),
         _ => transition.ToString(),
     };
 

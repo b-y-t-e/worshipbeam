@@ -6,9 +6,9 @@ Buduje wszystko do folderu release/:
   release/Uwielbienia-<wersja>-linux-x64.tar.gz  aplikacja Linux (jeden plik wykonywalny)
   release/velopack/                              instalator i aktualizacje Windows (vpk pack: Setup.exe,
                                                  Portable.zip, pełny .nupkg, releases.win.json…)
-  release/web/uwielbienie/                       strony do wysłania na serwer: strona startowa (app/web/landing, React)
-  release/web/uwielbienie/telefon/               pilot (app/web/remote)
-  release/web/uwielbienie/panel/                 panel (app/web/panel, React + Vite)
+  release/web/worshipbeam/                       strony do wysłania na serwer: strona startowa (app/web/landing, React)
+  release/web/worshipbeam/telefon/               pilot (app/web/remote)
+  release/web/worshipbeam/panel/                 panel (app/web/panel, React + Vite)
 
 Velopack powstaje tylko na Windows, razem z win-x64; vpk musi mieć wersję VelopackVersion
 z app/Directory.Build.props (dotnet tool update -g vpk --version X).
@@ -37,7 +37,7 @@ APP_PROJECT = APP / "src" / "Uwielbienia.App" / "Uwielbienia.App.csproj"
 ICON = APP / "src" / "Uwielbienia.App" / "Assets" / "icon.ico"
 VELOPACK = RELEASE / "velopack"
 WEB_SOURCE = APP / "web" / "remote"
-WEB_TARGET = RELEASE / "web" / "uwielbienie"
+WEB_TARGET = RELEASE / "web" / "worshipbeam"
 PILOT_TARGET = WEB_TARGET / "telefon"
 PANEL_SOURCE = APP / "web" / "panel"
 PANEL_TARGET = WEB_TARGET / "panel"
@@ -140,7 +140,9 @@ def pack_velopack(ver: str) -> Path:
     # Pusty folder wyjściowy = tylko pełna paczka, bez paczek różnicowych.
     run([
         "vpk", "pack",
+        # packId zostaje „Uwielbienia” — zainstalowane wersje szukają aktualizacji pod tym identyfikatorem
         "--packId", "Uwielbienia",
+        "--packTitle", "WorshipBeam",
         "--packVersion", ver,
         "--packDir", str(out),
         "--mainExe", "Uwielbienia.exe",
@@ -152,7 +154,7 @@ def pack_velopack(ver: str) -> Path:
 
 
 def build_web() -> Path:
-    # greysource.eu/uwielbienie/: strona startowa (React), telefon/ — pilot (bez budowania), panel/ — panel (React)
+    # greysource.eu/worshipbeam/: strona startowa (React), telefon/ — pilot (bez budowania), panel/ — panel (React)
     shutil.copytree(WEB_SOURCE, PILOT_TARGET, ignore=shutil.ignore_patterns("*.md", "derpmap.json"))
     # Mapa serwerów pośredniczących musi leżeć w tej samej domenie co strona (przeglądarka nie może
     # jej pobrać z tailcat.dev — brak nagłówka CORS), a nieaktualna wskazuje serwery, których już nie ma.
@@ -180,7 +182,7 @@ def build_vite(source: Path) -> None:
 
 
 def build_panel(derp_map: bytes) -> Path:
-    """Panel (React + Vite): npm run build → release/web/uwielbienie/panel/ z własną kopią derpmap.json."""
+    """Panel (React + Vite): npm run build → release/web/worshipbeam/panel/ z własną kopią derpmap.json."""
     build_vite(PANEL_SOURCE)
     shutil.copytree(PANEL_SOURCE / "dist", PANEL_TARGET)
     # Panel pobiera derpmap.json względem własnego adresu.
@@ -208,7 +210,7 @@ def main() -> None:
         check_vpk()
 
     ver = version()
-    print(f"Uwielbienia {ver}")
+    print(f"WorshipBeam {ver}")
     if RELEASE.exists():
         shutil.rmtree(RELEASE)
     RELEASE.mkdir()

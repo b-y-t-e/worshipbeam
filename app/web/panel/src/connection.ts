@@ -3,6 +3,7 @@ import { PairingRefusedError, TailcatLink, panelStore, type Link } from "./tailc
 import type {
   Command, CommandReply, DeviceMessage, KioskMessage, Notification, PlanMessage, PlansMessage, StateMessage, VideoMessage,
 } from "./protocol";
+import { setLanguage } from "./i18n";
 
 const APP_NAME = "uwielbienia";
 
@@ -46,6 +47,7 @@ function receive(message: Notification) {
   switch (message.type) {
     case "state":
       if (snapshot.state && message.session === snapshot.state.session && message.version < snapshot.state.version) return; // starsza wiadomość po nowszej (to samo uruchomienie aplikacji)
+      setLanguage(message.language);
       update({ state: message });
       break;
     case "plan":

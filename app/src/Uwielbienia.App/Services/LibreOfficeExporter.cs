@@ -5,6 +5,7 @@ using Avalonia.Platform;
 using Docnet.Core;
 using Docnet.Core.Models;
 using Uwielbienia.Core.Slideshows;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Services;
 
@@ -35,19 +36,19 @@ public sealed class LibreOfficeExporter : ISlideExporter
 
     public async Task ExportAsync(string presentation, string outDir, int width, IProgress<string> progress)
     {
-        var soffice = _soffice.Value ?? throw new InvalidOperationException("Brak programu LibreOffice");
+        var soffice = _soffice.Value ?? throw new InvalidOperationException(Tr.T("Brak programu LibreOffice"));
         var work = Path.Combine(Path.GetTempPath(), "uwielbienia-lo-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(work);
         try
         {
-            progress.Report("Slajdy (LibreOffice)…");
+            progress.Report(Tr.T("Slajdy (LibreOffice)…"));
             await ExternalTool.RunAsync(soffice,
             [
                 "-env:UserInstallation=" + new Uri(Path.Combine(work, "profil")).AbsoluteUri,
                 "--headless", "--convert-to", "pdf", "--outdir", work, presentation,
             ], Timeout).ConfigureAwait(false);
             var pdf = Directory.EnumerateFiles(work, "*.pdf").FirstOrDefault()
-                      ?? throw new InvalidOperationException("LibreOffice nie zapisał slajdów");
+                      ?? throw new InvalidOperationException(Tr.T("LibreOffice nie zapisał slajdów"));
             await Task.Run(() => RenderPages(pdf, outDir, width, progress)).ConfigureAwait(false);
         }
         finally
@@ -74,7 +75,7 @@ public sealed class LibreOfficeExporter : ISlideExporter
         var count = doc.GetPageCount();
         for (var i = 0; i < count; i++)
         {
-            progress.Report($"Slajd {i + 1} z {count}…");
+            progress.Report(Tr.F("Slajd {0} z {1}…", i + 1, count));
             using var page = doc.GetPageReader(i);
             SavePng(page.GetImage(), page.GetPageWidth(), page.GetPageHeight(), Path.Combine(outDir, $"slide{i + 1:D3}.png"));
         }

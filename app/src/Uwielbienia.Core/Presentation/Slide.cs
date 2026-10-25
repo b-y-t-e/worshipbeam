@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 namespace Uwielbienia.Core.Presentation;
 
 /// <summary>
@@ -19,14 +20,14 @@ public record Slide(string SectionCode, string Label, IReadOnlyList<SlideLine> L
 /// <summary>Slajd prezentacji: obraz na cały ekran.</summary>
 /// <param name="ImageFile">Pełna ścieżka pliku obrazu.</param>
 /// <param name="Number">Numer slajdu od 1.</param>
-public sealed record ImageSlide(string ImageFile, int Number) : Slide($"S{Number}", $"Slajd {Number}", []);
+public sealed record ImageSlide(string ImageFile, int Number) : Slide($"S{Number}", Tr.F("Slajd {0}", Number), []);
 
 /// <summary>Film na cały ekran; odtwarza go <see cref="Videos.IVideoPlayer"/>, gdy slajd jest na ekranie.</summary>
 /// <param name="File">Pełna ścieżka pliku filmu.</param>
-public sealed record VideoSlide(string File) : Slide("F", "Film", []);
+public sealed record VideoSlide(string File) : Slide("F", Tr.T("Film"), []);
 
 /// <summary>Okno innego programu na cały ekran; pokazuje je <see cref="AppWindows.IAppWindowCapture"/>, gdy slajd jest na ekranie.</summary>
-public sealed record AppWindowSlide(string Process, string? WindowTitle) : Slide("A", "Aplikacja", [])
+public sealed record AppWindowSlide(string Process, string? WindowTitle) : Slide("A", Tr.T("Aplikacja"), [])
 {
     public AppWindows.AppWindowTarget Target => new(Process, WindowTitle);
 }

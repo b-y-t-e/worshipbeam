@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 namespace Uwielbienia.Core.Updates;
 
 /// <summary>Periodically checks the release feed, downloads an update in the background, and installs it on request.</summary>
@@ -47,7 +48,7 @@ public sealed class UpdateService(IReleaseFeed feed, IUpdateLog log, IUiDispatch
     public string? ApplyUpdate()
     {
         if (!HasUpdate)
-            return "Brak pobranej aktualizacji.";
+            return Tr.T("Brak pobranej aktualizacji.");
 
         try
         {
@@ -57,7 +58,7 @@ public sealed class UpdateService(IReleaseFeed feed, IUpdateLog log, IUiDispatch
         catch (Exception ex)
         {
             log.Write($"Update installation failed: {ex}");
-            return $"Nie udało się zainstalować aktualizacji: {ex.Message}";
+            return Tr.F("Nie udało się zainstalować aktualizacji: {0}", ex.Message);
         }
     }
 

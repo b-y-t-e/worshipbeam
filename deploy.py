@@ -5,9 +5,9 @@ Wydanie nowej wersji — wszystko na tym komputerze (GitHub niczego nie buduje):
   1. sprawdza dane FTP, GITHUB_TOKEN i wersję vpk (przed zmianą wersji),
   2. podbija wersję w version.txt (x.y.z → x.y.z+1),
   3. buduje wszystko (build.py: testy, aplikacje Windows i Linux, Velopack, strona i panel),
-  4. wysyła strony przez FTP na greysource.eu/uwielbienie (start, telefon/, panel/),
+  4. wysyła strony przez FTP na greysource.eu/worshipbeam (start, telefon/, panel/),
   5. commituje version.txt, wypycha commit i tag vX.Y.Z,
-  6. tworzy GitHub Release „Uwielbienia vX.Y.Z” (REST API) i wysyła do niego pliki z release/
+  6. tworzy GitHub Release „WorshipBeam vX.Y.Z” (REST API) i wysyła do niego pliki z release/
      (aplikacje i kanał aktualizacji Velopack, który czyta UpdateService).
 
 Gdy po wypchnięciu tagu nie uda się utworzyć release'u, `python deploy.py --github-only` dokończy go
@@ -40,9 +40,9 @@ import build
 
 ROOT = Path(__file__).resolve().parent
 RELEASE = ROOT / "release"
-SITE = RELEASE / "web" / "uwielbienie"
+SITE = RELEASE / "web" / "worshipbeam"
 VELOPACK = RELEASE / "velopack"
-DEFAULT_FTP_DIR = "/greysource.eu/wwwroot/uwielbienie"
+DEFAULT_FTP_DIR = "/greysource.eu/wwwroot/worshipbeam"
 GITHUB_API = "https://api.github.com"
 
 for _stream in (sys.stdout, sys.stderr):
@@ -107,7 +107,7 @@ def upload_site() -> None:
             with file.open("rb") as data:
                 ftp.storbinary(f"STOR {target}/{relative}", data)
             print(f"  ↑ {relative}")
-    print("Strona wysłana: https://greysource.eu/uwielbienie/")
+    print("Strona wysłana: https://greysource.eu/worshipbeam/")
 
 
 def ensure_dir(ftp: ftplib.FTP, path: str) -> None:
@@ -227,7 +227,7 @@ def github_release(repository: str, version: str) -> None:
     if release is None:
         release = github_request("POST", f"{GITHUB_API}/repos/{repository}/releases", {
             "tag_name": tag,
-            "name": f"Uwielbienia {tag}",
+            "name": f"WorshipBeam {tag}",
             "generate_release_notes": True,
             "draft": True,
         })

@@ -5,6 +5,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using LibVLCSharp.Shared;
 using Uwielbienia.Core.Videos;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Services;
 
@@ -87,7 +88,7 @@ public sealed class VlcVideoPlayer : IVideoPlayer, IDisposable
             _wantPlaying = false;
             _player?.Stop();
             _frames.Reset(null);
-            SetStatus(new VideoStatus(file, false, TimeSpan.Zero, TimeSpan.Zero, Error: $"Nie ma pliku: {file}"));
+            SetStatus(new VideoStatus(file, false, TimeSpan.Zero, TimeSpan.Zero, Error: Tr.F("Nie ma pliku: {0}", file)));
             return;
         }
         if (Player() is not { } player)
@@ -220,14 +221,14 @@ public sealed class VlcVideoPlayer : IVideoPlayer, IDisposable
             });
             player.Paused += (_, _) => Post(s => _wantPlaying ? s : s with { IsPlaying = false });
             player.EndReached += (_, _) => Post(s => _started ? s with { IsPlaying = false, HasEnded = true, Position = s.Duration } : s);
-            player.EncounteredError += (_, _) => Post(s => s with { IsPlaying = false, Error = "Nie udało się odtworzyć filmu." });
+            player.EncounteredError += (_, _) => Post(s => s with { IsPlaying = false, Error = Tr.T("Nie udało się odtworzyć filmu.") });
             _player = player;
         }
         catch (Exception ex) when (ex is VLCException or DllNotFoundException or BadImageFormatException or InvalidOperationException)
         {
             _initError = OperatingSystem.IsWindows()
-                ? "Brak odtwarzacza VLC w instalacji programu."
-                : "Zainstaluj VLC (np. sudo apt install vlc), żeby odtwarzać filmy.";
+                ? Tr.T("Brak odtwarzacza VLC w instalacji programu.")
+                : Tr.T("Zainstaluj VLC (np. sudo apt install vlc), żeby odtwarzać filmy.");
         }
         return _player;
     }

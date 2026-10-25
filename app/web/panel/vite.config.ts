@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Panel leży na serwerze w podfolderze strony pilota (greysource.eu/uwielbienie/panel/) — ścieżki względne.
+// Panel leży na serwerze w podfolderze strony pilota (greysource.eu/worshipbeam/panel/) — ścieżki względne.
 // Klient tailcat-link, czcionki i ikona są wspólne ze stroną pilota (../remote) i trafiają do paczki; tweetnacl,
 // którego klient szuka, gdy nie ma globalnego, pochodzi z node_modules panelu.
 export default defineConfig({

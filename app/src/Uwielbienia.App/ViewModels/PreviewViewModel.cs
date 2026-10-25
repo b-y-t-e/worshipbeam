@@ -7,6 +7,7 @@ using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Slideshows;
 using Uwielbienia.Core.Songs;
 using Uwielbienia.Core.Videos;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -106,7 +107,7 @@ public sealed partial class PreviewViewModel : ObservableObject
     public bool IsEditing => Editor is not null;
 
     /// <summary>Nagłówek kolumny: rodzaj wybranej pozycji, a w trakcie edycji — co jest edytowane.</summary>
-    public string ColumnTitle => Editor?.Heading ?? (Presentation is not null ? "Prezentacja" : Video is not null ? "Film" : Kiosk is not null ? "Kiosk" : AppWindow is not null ? "Aplikacja" : IsText ? "Tekst" : "Pieśń");
+    public string ColumnTitle => Editor?.Heading ?? Tr.T(Presentation is not null ? "Prezentacja" : Video is not null ? "Film" : Kiosk is not null ? "Kiosk" : AppWindow is not null ? "Aplikacja" : IsText ? "Tekst" : "Pieśń");
 
     public bool IsViewing => Editor is null;
 
@@ -115,8 +116,8 @@ public sealed partial class PreviewViewModel : ObservableObject
     /// <summary>Znacznik przy tytule: własny tekst albo pieśń śpiewnika zmieniona na tym komputerze.</summary>
     public string? OriginText => Song?.Origin switch
     {
-        SongOrigin.Local => Song.IsText ? "własny tekst" : "własna pieśń",
-        SongOrigin.Modified => "zmieniona na tym komputerze",
+        SongOrigin.Local => Song.IsText ? Tr.T("własny tekst") : Tr.T("własna pieśń"),
+        SongOrigin.Modified => Tr.T("zmieniona na tym komputerze"),
         _ => null,
     };
 

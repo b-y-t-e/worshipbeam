@@ -9,6 +9,7 @@ using Uwielbienia.Core.Kiosks;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Slideshows;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -203,7 +204,7 @@ public sealed partial class KioskEntryViewModel : ObservableObject, IReorderable
 
     public bool HasImage => Entry.Folder is not null;
 
-    public string TextHint => HasImage ? "Napis przy obrazie (opcjonalnie)" : "Napis";
+    public string TextHint => HasImage ? Tr.T("Napis przy obrazie (opcjonalnie)") : Tr.T("Napis");
 
     [ObservableProperty]
     public partial string Title { get; set; }
@@ -257,7 +258,7 @@ public sealed partial class KioskEntryViewModel : ObservableObject, IReorderable
     }
 
     private static string Slides(int n) =>
-        n % 10 is >= 2 and <= 4 && n % 100 is < 12 or > 14 ? $"{n} slajdy — każdy osobno" : $"{n} slajdów — każdy osobno";
+        n % 10 is >= 2 and <= 4 && n % 100 is < 12 or > 14 ? Tr.F("{0} slajdy — każdy osobno", n) : Tr.F("{0} slajdów — każdy osobno", n);
 }
 
 /// <summary>

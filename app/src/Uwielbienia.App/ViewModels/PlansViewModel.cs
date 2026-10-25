@@ -6,6 +6,7 @@ using Uwielbienia.App.Services;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Songs;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -59,8 +60,8 @@ public sealed partial class PlansViewModel : ObservableObject
     public string NewButtonText => ShowingTemplates ? "+ Nowy szablon" : "+ Nowe wydarzenie";
 
     public string EmptyListText => ShowingTemplates
-        ? "Nie ma jeszcze szablonów. Szablon to stały zestaw pieśni bez daty, np. „Próba z dziećmi” — tworzy się z niego kolejne wydarzenia."
-        : "Nie ma jeszcze wydarzeń. Wydarzenie to plan pieśni na konkretny dzień.";
+        ? Tr.T("Nie ma jeszcze szablonów. Szablon to stały zestaw pieśni bez daty, np. „Próba z dziećmi” — tworzy się z niego kolejne wydarzenia.")
+        : Tr.T("Nie ma jeszcze wydarzeń. Wydarzenie to plan pieśni na konkretny dzień.");
 
     public ObservableCollection<PlanSummaryViewModel> Items { get; } = [];
 
@@ -79,7 +80,7 @@ public sealed partial class PlansViewModel : ObservableObject
 
     public bool CanDelete => SelectedIsClosed;
 
-    public string OpenButtonText => ShowingTemplates ? "Edytuj pieśni" : "Otwórz";
+    public string OpenButtonText => ShowingTemplates ? Tr.T("Edytuj pieśni") : Tr.T("Otwórz");
 
     public IReadOnlyList<string> SelectedSongs => Selected is null
         ? []
@@ -91,9 +92,9 @@ public sealed partial class PlansViewModel : ObservableObject
 
     public string SelectedSongsHeader => Selected?.Plan.Items.Count switch
     {
-        null or 0 => "Plan nie ma jeszcze pieśni",
-        1 => "1 pieśń",
-        var n => $"Pieśni: {n}",
+        null or 0 => Tr.T("Plan nie ma jeszcze pieśni"),
+        1 => Tr.T("1 pieśń"),
+        var n => Tr.F("Pieśni: {0}", n),
     };
 
     // --- Formularz ---
@@ -107,8 +108,8 @@ public sealed partial class PlansViewModel : ObservableObject
     public bool ShowPlaceholder => !HasForm;
 
     public string FormTitle => IsCreating
-        ? ShowingTemplates ? "Nowy szablon" : "Nowe wydarzenie"
-        : ShowingTemplates ? "Szablon" : "Wydarzenie";
+        ? ShowingTemplates ? Tr.T("Nowy szablon") : Tr.T("Nowe wydarzenie")
+        : ShowingTemplates ? Tr.T("Szablon") : Tr.T("Wydarzenie");
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanSave), nameof(CanCreate), nameof(IsDirty))]
@@ -118,7 +119,7 @@ public sealed partial class PlansViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanSave), nameof(CanCreate), nameof(IsDirty))]
     public partial DateTime? EditDate { get; set; }
 
-    public string NamePlaceholder => "Wpisz nazwę";
+    public string NamePlaceholder => Tr.T("Wpisz nazwę");
 
     public bool IsDirty => Selected is { } s && (EditName.Trim() != s.Plan.Name || EditDateOnly != s.Plan.Date);
 
@@ -289,7 +290,7 @@ public sealed partial class PlansViewModel : ObservableObject
 
 public sealed class PlanSummaryViewModel(Plan plan, bool isOpen)
 {
-    private static readonly CultureInfo Polish = CultureInfo.GetCultureInfo("pl-PL");
+    private static CultureInfo Polish => Uwielbienia.Core.Localization.Tr.Culture;
 
     public Plan Plan { get; } = plan;
 
@@ -304,9 +305,9 @@ public sealed class PlanSummaryViewModel(Plan plan, bool isOpen)
             var count = Plan.Items.Count;
             var songs = count switch
             {
-                0 => "bez pieśni",
-                1 => "1 pieśń",
-                _ => $"{count} pieśni",
+                0 => Tr.T("bez pieśni"),
+                1 => Tr.T("1 pieśń"),
+                _ => Tr.F("{0} pieśni", count),
             };
             return Plan.Date is { } date ? $"{date.ToString("ddd, d MMM yyyy", Polish)} · {songs}" : songs;
         }

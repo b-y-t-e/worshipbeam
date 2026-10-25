@@ -17,7 +17,7 @@ PROJECT = ROOT / "app" / "src" / "Uwielbienia.Desktop"
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Kompiluje i uruchamia aplikację Uwielbienia.")
+    parser = argparse.ArgumentParser(description="Kompiluje i uruchamia aplikację WorshipBeam.")
     parser.add_argument("--release", action="store_true", help="kompilacja Release zamiast Debug")
     parser.add_argument("app_args", nargs=argparse.REMAINDER, help="argumenty dla aplikacji (po --)")
     args = parser.parse_args()

@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Slideshows;
@@ -58,7 +59,7 @@ public sealed class KioskPlanItemType : IPlanItemType
     private static string? Note(KioskPlanItem kiosk, Func<string, SlideshowState> peek)
     {
         if (!kiosk.Entries.Any(e => e.Folder is not null || e.HasText))
-            return EmptyNote;
+            return Tr.T(EmptyNote);
         return kiosk.Entries.Where(e => e.Folder is not null).Select(e => peek(e.Folder!).Note).FirstOrDefault(n => n is not null);
     }
 

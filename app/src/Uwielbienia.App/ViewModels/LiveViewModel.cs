@@ -7,6 +7,7 @@ using Uwielbienia.App.Services;
 using Uwielbienia.App.Transitions;
 using Uwielbienia.Core.Kiosks;
 using Uwielbienia.Core.Presentation;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -66,7 +67,7 @@ public sealed partial class LiveViewModel : ObservableObject
     [ObservableProperty]
     public partial IPageTransition PageTransition { get; private set; } = SlideChange;
 
-    public string Title => State.Item is { } item ? item.Title : "Ekran jest pusty";
+    public string Title => State.Item is { } item ? item.Title : Tr.T("Ekran jest pusty");
 
     public string? Number => State.Item?.Number?.ToString();
 
@@ -74,7 +75,7 @@ public sealed partial class LiveViewModel : ObservableObject
 
     public bool HasItem => State.Item is not null;
 
-    public string? NextText => State.Next is { } next ? $"Dalej: {next}" : null;
+    public string? NextText => State.Next is { } next ? Tr.F("Dalej: {0}", next) : null;
 
     public ObservableCollection<SlideTabViewModel> Slides { get; } = [];
 
@@ -111,7 +112,7 @@ public sealed partial class LiveViewModel : ObservableObject
 
     public bool HasCurrentKiosk => CurrentTab?.Slide is KioskSlide;
 
-    public string? CurrentLabel => (HasCurrentKiosk ? Kiosk.PositionText : null) ?? CurrentTab?.Label ?? (HasItem && Slides.Count == 0 ? State.Item?.Note ?? "Brak slajdów" : null);
+    public string? CurrentLabel => (HasCurrentKiosk ? Kiosk.PositionText : null) ?? CurrentTab?.Label ?? (HasItem && Slides.Count == 0 ? State.Item?.Note ?? Tr.T("Brak slajdów") : null);
 
     public string? UpcomingLabel => NextTab?.Label ?? NextText;
 

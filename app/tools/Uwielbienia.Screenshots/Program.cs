@@ -521,8 +521,8 @@ sealed class ShotRemoteServer : Uwielbienia.Link.IRemoteServer
     public Task<Uwielbienia.Link.RemoteInvitation> InviteAsync(
         Uwielbienia.Link.RemoteClient client = Uwielbienia.Link.RemoteClient.Pilot, CancellationToken cancellationToken = default) =>
         Task.FromResult(new Uwielbienia.Link.RemoteInvitation(
-            "tco2FwWCDSeyRbjMTA2mWu3c", new Uri("https://greysource.eu/uwielbienie/telefon/#code=tco2FwWCDSeyRbjMTA2mWu3c"),
-            DateTimeOffset.Now.AddMinutes(10), client, "ajk59", new Uri("https://greysource.eu/uwielbienie/telefon/#code=ajk59"),
+            "tco2FwWCDSeyRbjMTA2mWu3c", new Uri("https://greysource.eu/worshipbeam/telefon/#code=tco2FwWCDSeyRbjMTA2mWu3c"),
+            DateTimeOffset.Now.AddMinutes(10), client, "ajk59", new Uri("https://greysource.eu/worshipbeam/telefon/#code=ajk59"),
             DateTimeOffset.Now.AddMinutes(5)));
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;

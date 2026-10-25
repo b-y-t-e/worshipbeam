@@ -5,13 +5,14 @@ using CommunityToolkit.Mvvm.Input;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Link;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
 /// <summary>Lewa kolumna: kolejka wykonawcza. Klik pokazuje pozycję, przeciąganie zmienia kolejność.</summary>
 public sealed partial class PlanViewModel : ObservableObject
 {
-    private static readonly CultureInfo Polish = CultureInfo.GetCultureInfo("pl-PL");
+    private static CultureInfo Polish => Uwielbienia.Core.Localization.Tr.Culture;
 
     private readonly ActivePlan _plan;
     private readonly IPlanItemTypes _itemTypes;
@@ -55,7 +56,7 @@ public sealed partial class PlanViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsRemoveConfirmationOpen))]
     public partial PlanItemViewModel? PendingRemoval { get; set; }
 
-    public string Name => _plan.Plan?.Name ?? "Brak planu";
+    public string Name => _plan.Plan?.Name ?? Tr.T("Brak planu");
 
     /// <summary>Data planu — pomijana, gdy nazwa już ją zawiera („Uwielbienie 25 września 2026”).</summary>
     public string? DateText =>

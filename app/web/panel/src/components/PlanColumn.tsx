@@ -6,6 +6,7 @@ import { Confirm } from "./Dialog";
 import { GripIcon, KindMark, PlusIcon } from "./Icons";
 import { Menu } from "./Menu";
 import { SearchDialog } from "./SearchDialog";
+import { t } from "../i18n";
 
 /**
  * Kolumna „Plan”: klik wybiera pozycję do kolumny „Pieśń”, dwuklik (albo „Pokaż na ekranie”) pokazuje ją na ekranie,
@@ -38,8 +39,8 @@ export function PlanColumn({ plan, liveItemId, selectedId, onSelect }: {
   return (
     <section className="column plan-column">
       <header className="column-head">
-        <h2>Plan</h2>
-        <button className="icon-button" aria-label="Dodaj do planu" title="Dodaj do planu (za zaznaczoną pozycją)"
+        <h2>{t("Plan")}</h2>
+        <button className="icon-button" aria-label={t("Dodaj do planu")} title={t("Dodaj do planu (za zaznaczoną pozycją)")}
                 onClick={() => setAddAt(selectedIndex >= 0 ? selectedIndex + 1 : items.length)}>
           <PlusIcon />
         </button>
@@ -59,20 +60,20 @@ export function PlanColumn({ plan, liveItemId, selectedId, onSelect }: {
                 {item.note ? <span className="note">{item.note}</span> : null}
               </span>
               <Menu actions={[
-                { label: "Pokaż na ekranie", onSelect: () => show(item), disabled: item.slideCount === 0 },
-                { label: "Dodaj powyżej", onSelect: () => setAddAt(index) },
-                { label: "Dodaj poniżej", onSelect: () => setAddAt(index + 1) },
-                { label: "Duplikuj", onSelect: () => void command("planDuplicate", { itemId: item.id }) },
-                { label: "Usuń z planu", onSelect: () => setRemoving(item), danger: true },
+                { label: t("Pokaż na ekranie"), onSelect: () => show(item), disabled: item.slideCount === 0 },
+                { label: t("Dodaj powyżej"), onSelect: () => setAddAt(index) },
+                { label: t("Dodaj poniżej"), onSelect: () => setAddAt(index + 1) },
+                { label: t("Duplikuj"), onSelect: () => void command("planDuplicate", { itemId: item.id }) },
+                { label: t("Usuń z planu"), onSelect: () => setRemoving(item), danger: true },
               ]} />
             </div>
           ))}
         </div>
-        {plan && items.length === 0 ? <p className="muted empty">Plan jest pusty. Dodaj pieśń przyciskiem „+”.</p> : null}
+        {plan && items.length === 0 ? <p className="muted empty">{t("Plan jest pusty. Dodaj pieśń przyciskiem „+”.")}</p> : null}
       </div>
-      {addAt !== null ? <SearchDialog title="Dodaj do planu" onPick={add} onClose={() => setAddAt(null)} /> : null}
+      {addAt !== null ? <SearchDialog title={t("Dodaj do planu")} onPick={add} onClose={() => setAddAt(null)} /> : null}
       {removing ? (
-        <Confirm text={`Usunąć „${removing.title}” z planu?`} action="Usuń z planu"
+        <Confirm text={t("Usunąć „{0}” z planu?", removing.title)} action={t("Usuń z planu")}
                  onConfirm={() => { void command("planRemove", { itemId: removing.id }); setRemoving(null); }}
                  onCancel={() => setRemoving(null)} />
       ) : null}

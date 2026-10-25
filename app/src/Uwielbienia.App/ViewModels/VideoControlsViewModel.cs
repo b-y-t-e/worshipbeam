@@ -92,7 +92,7 @@ public sealed partial class VideoControlsViewModel : ObservableObject
         return ms switch { > 0 => $"+{seconds} s", < 0 => $"−{seconds} s", _ => $"{seconds} s" };
     }
 
-    private static readonly System.Globalization.CultureInfo PolishNumbers = System.Globalization.CultureInfo.GetCultureInfo("pl-PL");
+    private static System.Globalization.CultureInfo PolishNumbers => Uwielbienia.Core.Localization.Tr.Culture;
 
     private static string Format(TimeSpan time) =>
         time.TotalHours >= 1 ? time.ToString(@"h\:mm\:ss") : time.ToString(@"m\:ss");

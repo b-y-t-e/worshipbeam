@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:l="using:Uwielbienia.App.Localization"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Uwielbienia.App.ViewModels"
              x:Class="Uwielbienia.App.Views.RemoteOverlay"
@@ -7,20 +8,20 @@
     <Border Classes="panel" Width="640" Padding="28" VerticalAlignment="Center">
       <StackPanel Spacing="14">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Classes="songTitle" Text="Urządzenia" />
-          <Button Grid.Column="1" Classes="quiet closeButton" Content="✕" ToolTip.Tip="Zamknij" Command="{Binding CloseCommand}" VerticalAlignment="Top" />
+          <TextBlock Classes="songTitle" Text="{l:T 'Urządzenia'}" />
+          <Button Grid.Column="1" Classes="quiet closeButton" Content="✕" ToolTip.Tip="{l:T 'Zamknij'}" Command="{Binding CloseCommand}" VerticalAlignment="Top" />
         </Grid>
         <Border Classes="segmented" HorizontalAlignment="Left">
           <StackPanel Orientation="Horizontal" Spacing="4">
-            <Button Classes="tab" Classes.active="{Binding ForPilot}" Content="Telefon" Command="{Binding ShowPilotCommand}" />
-            <Button Classes="tab" Classes.active="{Binding ForPanel}" Content="Panel" Command="{Binding ShowPanelCommand}" />
+            <Button Classes="tab" Classes.active="{Binding ForPilot}" Content="{l:T 'Telefon'}" Command="{Binding ShowPilotCommand}" />
+            <Button Classes="tab" Classes.active="{Binding ForPanel}" Content="{l:T 'Panel'}" Command="{Binding ShowPanelCommand}" />
           </StackPanel>
         </Border>
         <TextBlock TextWrapping="Wrap" FontSize="15" Text="{Binding Hint}" />
         <Border Background="White" CornerRadius="12" Padding="8" HorizontalAlignment="Center" Width="300" Height="300">
           <Panel>
             <Image Source="{Binding QrCode}" Stretch="Uniform" />
-            <TextBlock Text="Przygotowuję kod…" Foreground="#1B2138" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <TextBlock Text="{l:T 'Przygotowuję kod…'}" Foreground="#1B2138" HorizontalAlignment="Center" VerticalAlignment="Center"
                        IsVisible="{Binding IsBusy}" />
           </Panel>
         </Border>
@@ -32,7 +33,7 @@
         <TextBlock Classes="caption" Text="{Binding ExpiresText}" HorizontalAlignment="Center" />
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
-          <Button Grid.Column="1" Content="Nowy kod" Command="{Binding InviteCommand}" />
+          <Button Grid.Column="1" Content="{l:T 'Nowy kod'}" Command="{Binding InviteCommand}" />
         </Grid>
         <!-- Domyślnie telefon tylko zmienia slajdy (można dać dziecku); dodawanie pieśni operator włącza osobno. -->
         <StackPanel Spacing="4" IsVisible="{Binding HasPairedDevices}">
@@ -49,15 +50,15 @@
                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
                     <TextBlock Classes="caption" Text="{Binding Details}" />
                   </StackPanel>
-                  <CheckBox Grid.Column="3" Content="Dodaje pieśni" IsChecked="{Binding CanAddSongs}" VerticalAlignment="Center"
+                  <CheckBox Grid.Column="3" Content="{l:T 'Dodaje pieśni'}" IsChecked="{Binding CanAddSongs}" VerticalAlignment="Center"
                             IsVisible="{Binding IsPilot}"
-                            ToolTip.Tip="Telefon może dodać pieśń z wyszukiwarki jako następną w planie" />
-                  <CheckBox Grid.Column="5" Content="Panel" IsChecked="{Binding IsPanel}" VerticalAlignment="Center"
-                            ToolTip.Tip="Panel na drugim komputerze lub tablecie: plany, plan, pieśni i ekran" />
+                            ToolTip.Tip="{l:T 'Telefon może dodać pieśń z wyszukiwarki jako następną w planie'}" />
+                  <CheckBox Grid.Column="5" Content="{l:T 'Panel'}" IsChecked="{Binding IsPanel}" VerticalAlignment="Center"
+                            ToolTip.Tip="{l:T 'Panel na drugim komputerze lub tablecie: plany, plan, pieśni i ekran'}" />
                   <Panel Grid.Column="7" VerticalAlignment="Center">
-                    <Button Classes="quiet removeItem" Content="Zapomnij" Command="{Binding ForgetCommand}"
-                            IsVisible="{Binding !IsConfirmingForget}" ToolTip.Tip="Rozparuj — połączy się znowu dopiero po nowym kodzie" />
-                    <Button Classes="danger" Content="Zapomnieć?" Command="{Binding ForgetCommand}"
+                    <Button Classes="quiet removeItem" Content="{l:T 'Zapomnij'}" Command="{Binding ForgetCommand}"
+                            IsVisible="{Binding !IsConfirmingForget}" ToolTip.Tip="{l:T 'Rozparuj — połączy się znowu dopiero po nowym kodzie'}" />
+                    <Button Classes="danger" Content="{l:T 'Zapomnieć?'}" Command="{Binding ForgetCommand}"
                             IsVisible="{Binding IsConfirmingForget}" />
                   </Panel>
                 </Grid>
@@ -68,7 +69,7 @@
                      IsVisible="{Binding DevicesError, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </StackPanel>
         <TextBlock Classes="caption" TextWrapping="Wrap"
-                   Text="Sparowane urządzenie łączy się samo przy każdym uruchomieniu. Połączenie jest szyfrowane i przechodzi przez publiczny serwer pośredniczący." />
+                   Text="{l:T 'Sparowane urządzenie łączy się samo przy każdym uruchomieniu. Połączenie jest szyfrowane i przechodzi przez publiczny serwer pośredniczący.'}" />
       </StackPanel>
     </Border>
   </Border>

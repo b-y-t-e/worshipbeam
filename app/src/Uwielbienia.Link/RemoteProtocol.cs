@@ -92,6 +92,9 @@ public sealed record StateMessage(
 
     public string Session => CurrentSession;
 
+    /// <summary>Język interfejsu aplikacji (<c>pl</c>, <c>en</c>, <c>hu</c>, <c>hr</c>) — pilot i panel mówią tym samym.</summary>
+    public string Language => Uwielbienia.Core.Localization.Tr.Language;
+
     public static StateMessage From(LiveState state, IRemoteImageKeys images) => new(
         state.Version,
         state.Item?.ContentId,

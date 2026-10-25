@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Uwielbienia.Core.Slideshows;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Services;
 
@@ -21,8 +22,8 @@ public sealed partial class DeckCraftExporter : ISlideExporter
 
     public async Task ExportAsync(string presentation, string outDir, int width, IProgress<string> progress)
     {
-        var cli = _cli.Value ?? throw new InvalidOperationException("Brak programu DeckCraft");
-        progress.Report("Slajdy (DeckCraft)…");
+        var cli = _cli.Value ?? throw new InvalidOperationException(Tr.T("Brak programu DeckCraft"));
+        progress.Report(Tr.T("Slajdy (DeckCraft)…"));
         using var info = JsonDocument.Parse(await ExternalTool.RunAsync(cli, ["info", presentation], Timeout).ConfigureAwait(false));
         var slideWidth = info.RootElement.GetProperty("slideSize")[0].GetDouble();
         var hidden = info.RootElement.GetProperty("slides").EnumerateArray()

@@ -7,7 +7,7 @@ namespace Uwielbienia.App.Services;
 /// <summary>GitHub Releases feed of the installation created by <c>Uwielbienia-win-Setup.exe</c>.</summary>
 public sealed class VelopackReleaseFeed(IApplicationShutdown shutdown) : IReleaseFeed
 {
-    private const string GitHubRepository = "https://github.com/b-y-t-e/uwielbienia";
+    private const string GitHubRepository = "https://github.com/b-y-t-e/worshipbeam";
 
     private readonly Lazy<UpdateManager?> _lazyManager = new(CreateManagerIfLocated);
     private UpdateInfo? _downloaded;

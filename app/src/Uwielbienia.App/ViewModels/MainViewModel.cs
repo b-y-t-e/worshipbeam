@@ -3,6 +3,7 @@ using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Uwielbienia.App.Services;
+using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
 using Uwielbienia.Core.Songs;
@@ -16,6 +17,7 @@ public sealed partial class MainViewModel : ObservableObject
 {
     private readonly ISettingsStore _settings;
     private readonly IUpdateService _updates;
+    private readonly IApplicationShutdown _shutdown;
 
     public MainViewModel(
         LiveViewModel live,
@@ -34,8 +36,10 @@ public sealed partial class MainViewModel : ObservableObject
         PlanActions planActions,
         ProjectionCalibration calibration,
         IVideoPlayer video,
-        FilmRemote film)
+        FilmRemote film,
+        IApplicationShutdown shutdown)
     {
+        _shutdown = shutdown;
         Video = video;
         Film = film;
         PlanAdd = planAdd;
@@ -50,7 +54,7 @@ public sealed partial class MainViewModel : ObservableObject
         Control = control;
         _settings = settings;
         _updates = updates;
-        LibraryWarning = library.Errors.Count > 0 ? $"Nie udało się odczytać pieśni: {library.Errors.Count}" : null;
+        LibraryWarning = library.Errors.Count > 0 ? Tr.F("Nie udało się odczytać pieśni: {0}", library.Errors.Count) : null;
 
         plan.ItemSelected += (_, item) => ShowDetails(item, library, preview);
         plan.SelectionCleared += (_, _) => preview.Clear();
@@ -175,6 +179,21 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ToggleProjectionTheme() =>
         _settings.Update(s => s with { ProjectionTheme = s.ProjectionTheme == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark });
+
+    public IReadOnlyList<UiLanguage> Languages => Tr.Languages;
+
+    /// <summary>Kod języka na przycisku (np. „PL”).</summary>
+    public string LanguageCode => Tr.Language.ToUpperInvariant();
+
+    /// <summary>Teksty tłumaczą się przy wczytaniu widoków — zmiana języka zapisuje wybór i uruchamia aplikację od nowa.</summary>
+    [RelayCommand]
+    private void ChangeLanguage(UiLanguage language)
+    {
+        if (language.Code == Tr.Language)
+            return;
+        _settings.Update(s => s with { Language = language.Code });
+        _shutdown.Restart();
+    }
 
     [ObservableProperty]
     private string? _updateError;

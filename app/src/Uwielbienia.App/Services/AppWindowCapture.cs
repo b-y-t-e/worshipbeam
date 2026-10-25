@@ -7,6 +7,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Uwielbienia.Core.AppWindows;
 using Uwielbienia.Core;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Services;
 
@@ -42,7 +43,7 @@ public sealed class AppWindowCapture(IErrorLog errors) : IAppWindowCapture, IDis
     public VideoFrames Frames { get; } = new();
 
     public string? Unavailable =>
-        OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041) ? null : "Pokazywanie aplikacji działa tylko w Windows 10 (2004) i nowszym.";
+        OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041) ? null : Tr.T("Pokazywanie aplikacji działa tylko w Windows 10 (2004) i nowszym.");
 
     public AppWindowInfo? Shown { get; private set; }
 
@@ -127,7 +128,7 @@ public sealed class AppWindowCapture(IErrorLog errors) : IAppWindowCapture, IDis
                         errors.Report(ex);
                     lastFailure = ex.Message;
                     failureShown = true;
-                    ShowWindow(null, generation, $"Nie udało się pokazać okna: {ex.Message}");
+                    ShowWindow(null, generation, Tr.F("Nie udało się pokazać okna: {0}", ex.Message));
                     stop.WaitHandle.WaitOne(SearchInterval);
                 }
             }

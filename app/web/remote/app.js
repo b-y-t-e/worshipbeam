@@ -1,11 +1,13 @@
-// Pilot i ekran w przeglądarce dla aplikacji „Uwielbienia”.
+// Pilot i ekran w przeglądarce dla aplikacji „WorshipBeam”.
 // Protokół: app/src/Uwielbienia.Link/RemoteProtocol.cs — host wysyła {type:"state"|"plan"|"video"|"device"|"kiosk"},
 // strona pyta poleceniami {cmd:"hello"|"next"|"prev"|"image"|…}. Telefon zmienia slajdy: bez planu i gaszenia
 // ekranu (to zostaje w aplikacji) — dziecko nic nie zepsuje, a muzyk widzi bieżący i następny slajd z
 // akordami bez dotykania telefonu. Dodawanie pieśni („+”) tylko z uprawnieniem nadanym w aplikacji.
 
 import { TailcatLink, PairingRefusedError } from "./lib/tailcat/index.js";
+import { getLanguage, onLanguageChange, setLanguage, t, translatePage } from "./i18n.js";
 
+// Nazwa aplikacji w tailcat-link — klucz zapamiętanego parowania; bez zmiany przy zmianie nazwy programu.
 const APP_NAME = "uwielbienia";
 const $ = (id) => document.getElementById(id);
 
@@ -79,6 +81,7 @@ function receive(message) {
   if (message.type === "state") {
     if (state && message.session === state.session && message.version < state.version) return; // starsza wiadomość po nowszej (to samo uruchomienie aplikacji)
     state = message;
+    setLanguage(message.language);
     renderState();
   } else if (message.type === "device") {
     setCanAddSongs(!!message.canAddSongs);
@@ -144,7 +147,7 @@ function renderKiosk() {
   $("kioskPanel").hidden = !show;
   if (state) ui.currentLines.hidden = !!state.isVideo || show || !!state.image;
   if (!show) return;
-  ui.nowLabel.textContent = `Kiosk · ${kiosk.index + 1} z ${kiosk.count}${kiosk.isRunning || kiosk.count < 2 ? "" : " · zatrzymany"}`;
+  ui.nowLabel.textContent = t("Kiosk · {0} z {1}", kiosk.index + 1, kiosk.count) + (kiosk.isRunning || kiosk.count < 2 ? "" : t(" · zatrzymany"));
   $("kioskImage").hidden = !kiosk.image;
   if (kiosk.image) $("kioskImage").src = kiosk.image;
   $("kioskTitle").textContent = kiosk.title ?? "";
@@ -176,9 +179,9 @@ function renderVideo() {
   $("videoProgress").style.width = v.duration ? `${(100 * position) / v.duration}%` : "0%";
   $("iconPause").toggleAttribute("hidden", !v.isPlaying); // SVG nie ma właściwości hidden — tylko atrybut
   $("iconPlay").toggleAttribute("hidden", v.isPlaying);
-  $("videoToggle").setAttribute("aria-label", v.isPlaying ? "Pauza" : "Odtwórz");
+  $("videoToggle").setAttribute("aria-label", t(v.isPlaying ? "Pauza" : "Odtwórz"));
   const ms = v.pictureOffsetMs ?? 0;
-  const seconds = (Math.abs(ms) / 1000).toFixed(1).replace(".", ",");
+  const seconds = (Math.abs(ms) / 1000).toFixed(1).replace(".", getLanguage() === "en" ? "." : ",");
   $("pictureOffset").textContent = ms > 0 ? `+${seconds} s` : ms < 0 ? `−${seconds} s` : `${seconds} s`;
   $("videoOffset").classList.toggle("set", ms !== 0);
   $("videoError").hidden = !v.error;
@@ -193,7 +196,11 @@ $("pictureLater").onclick = () => command("videoOffset", { milliseconds: 100 });
 
 // ---------- widok ----------
 
-function setStatus(kind, text) {
+// Ostatni stan połączenia — po zmianie języka napis rysuje się od nowa.
+let status = ["connecting", "Łączenie…"];
+function setStatus(kind, polish) {
+  status = [kind, polish];
+  const text = t(polish);
   ui.status.dataset.state = kind;
   ui.status.textContent = text;
   ui.status.title = text;
@@ -252,7 +259,7 @@ for (const screen of document.querySelectorAll(".slide-screen")) {
 function renderState() {
   const s = state;
   ui.nowNumber.textContent = s.number ?? "";
-  ui.nowTitle.textContent = s.title ?? "Ekran jest pusty";
+  ui.nowTitle.textContent = s.title ?? t("Ekran jest pusty");
   ui.nowLabel.textContent = s.label ?? "";
   ui.blankBadge.hidden = !s.isBlank;
   ui.currentLines.parentElement.classList.toggle("empty", !s.title);
@@ -266,7 +273,7 @@ function renderState() {
 
   // początek następnego slajdu (2 wersy z akordami) — muzyk wie, co nadchodzi, a bieżący zostaje duży
   const nextLines = (s.nextLines ?? []).slice(0, 2);
-  ui.nextLabel.textContent = s.next ? `Dalej: ${s.next}` : "";
+  ui.nextLabel.textContent = s.next ? t("Dalej: {0}", s.next) : "";
   ui.nextLines.replaceChildren(...nextLines.map(chordLine));
   renderImages();
   renderVideo();
@@ -334,11 +341,13 @@ function renderDisplay() {
 
 const isDisplayMode = () => location.hash === "#ekran";
 
+let pairingMessage = null;
 function showPairing(message) {
+  pairingMessage = message;
   ui.pairing.hidden = false;
   ui.remote.hidden = true;
   ui.display.hidden = true;
-  $("pairError").textContent = message ?? "";
+  $("pairError").textContent = message ? t(message) : "";
 }
 
 function showMain() {
@@ -372,7 +381,7 @@ showChords(localStorage.getItem("akordy") !== "0");
 const themeToggle = $("themeToggle");
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  themeToggle.setAttribute("aria-label", theme === "light" ? "Ciemny wygląd" : "Jasny wygląd");
+  themeToggle.setAttribute("aria-label", t(theme === "light" ? "Ciemny wygląd" : "Jasny wygląd"));
   document.querySelector('meta[name="theme-color"]').content = theme === "light" ? "#F6F7FB" : "#161B2E";
 }
 themeToggle.onclick = () => {
@@ -456,15 +465,15 @@ async function addNext(hit) {
     adding = false;
   }
   if (!reply) return;
-  if (!reply.ok) { showToast(reply.error ?? "Nie udało się dodać."); return; }
+  if (!reply.ok) { showToast(reply.error ?? t("Nie udało się dodać.")); return; }
   closeAddSheet();
   const added = reply.added;
-  showToast(`Następna: ${added.number ? added.number + " " : ""}${added.title}`, () => undoAdd(added.id));
+  showToast(t("Następna: {0}", `${added.number ? added.number + " " : ""}${added.title}`), () => undoAdd(added.id));
 }
 
 async function undoAdd(itemId) {
   const reply = await command("undoAdd", { itemId });
-  if (reply) showToast(reply.ok ? "Cofnięto." : reply.error ?? "Nie udało się cofnąć.");
+  if (reply) showToast(reply.ok ? t("Cofnięto.") : reply.error ?? t("Nie udało się cofnąć."));
 }
 
 function showToast(text, undo = null) {
@@ -497,7 +506,7 @@ document.addEventListener("keydown", (e) => {
 
 // Odłączenie: aplikacja zapomina to urządzenie, a przeglądarka — parowanie (następnym razem nowy kod)
 $("leave").addEventListener("click", async () => {
-  if (!confirm("Odłączyć od aplikacji? Telefon przestanie zmieniać slajdy, a żeby wrócić, potrzebny będzie nowy kod.")) return;
+  if (!confirm(t("Odłączyć od aplikacji? Telefon przestanie zmieniać slajdy, a żeby wrócić, potrzebny będzie nowy kod."))) return;
   const current = link;
   link = null;
   if (current) {
@@ -528,6 +537,18 @@ async function expandShortCode(code) {
 function paragraph(text) {
   return Object.assign(document.createElement("p"), { textContent: text });
 }
+
+// ---------- język ----------
+// Do pierwszego stanu — zapamiętany albo przeglądarki; potem zawsze język aplikacji (state.language).
+
+translatePage();
+ui.nowTitle.textContent = t("Ekran jest pusty");
+onLanguageChange(() => {
+  setStatus(...status);
+  setTheme(document.documentElement.dataset.theme);
+  if (!ui.pairing.hidden) $("pairError").textContent = pairingMessage ? t(pairingMessage) : "";
+  if (state) renderState();
+});
 
 // ---------- start ----------
 

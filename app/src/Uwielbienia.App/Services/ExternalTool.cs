@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.Services;
 
@@ -37,7 +38,7 @@ internal static class ExternalTool
         };
         foreach (var arg in args)
             info.ArgumentList.Add(arg);
-        using var process = Process.Start(info) ?? throw new InvalidOperationException($"Nie udało się uruchomić {Path.GetFileName(exe)}");
+        using var process = Process.Start(info) ?? throw new InvalidOperationException(Tr.F("Nie udało się uruchomić {0}", Path.GetFileName(exe)));
         var output = process.StandardOutput.ReadToEndAsync();
         var error = process.StandardError.ReadToEndAsync();
         using var cancel = new CancellationTokenSource(timeout);

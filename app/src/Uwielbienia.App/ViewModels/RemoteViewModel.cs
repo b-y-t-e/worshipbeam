@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Uwielbienia.App.Services;
 using Uwielbienia.Link;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -51,23 +52,23 @@ public sealed partial class RemoteViewModel : ObservableObject
     public bool ForPilot => !ForPanel;
 
     public string Hint => ForPanel
-        ? "Na drugim komputerze lub tablecie zeskanuj kod albo otwórz adres spod kodu. Otworzy się panel: plany, plan, pieśni i to, co jest na ekranie — wszystko jak tutaj."
-        : "Zeskanuj kod aparatem telefonu. Otworzy się pilot: tekst z akordami, Dalej i Wstecz. Na komputerze otwórz ten sam adres i wybierz „Ekran”, żeby pokazywać tekst w przeglądarce.";
+        ? Tr.T("Na drugim komputerze lub tablecie zeskanuj kod albo otwórz adres spod kodu. Otworzy się panel: plany, plan, pieśni i to, co jest na ekranie — wszystko jak tutaj.")
+        : Tr.T("Zeskanuj kod aparatem telefonu. Otworzy się pilot: tekst z akordami, Dalej i Wstecz. Na komputerze otwórz ten sam adres i wybierz „Ekran”, żeby pokazywać tekst w przeglądarce.");
 
     public string StatusText => _server.Status switch
     {
-        RemoteServerStatus.Off => "Połączenia wyłączone",
-        RemoteServerStatus.Starting => "Łączenie z serwerem pośredniczącym…",
-        RemoteServerStatus.Failed => $"Nie udało się uruchomić połączeń: {_server.LastError}",
+        RemoteServerStatus.Off => Tr.T("Połączenia wyłączone"),
+        RemoteServerStatus.Starting => Tr.T("Łączenie z serwerem pośredniczącym…"),
+        RemoteServerStatus.Failed => Tr.F("Nie udało się uruchomić połączeń: {0}", _server.LastError),
         _ => _server.ConnectedDevices switch
         {
-            0 => "Brak połączonych urządzeń",
-            1 => "Połączone: 1 urządzenie",
-            var n => $"Połączone urządzenia: {n}",
+            0 => Tr.T("Brak połączonych urządzeń"),
+            1 => Tr.T("Połączone: 1 urządzenie"),
+            var n => Tr.F("Połączone urządzenia: {0}", n),
         },
     };
 
-    public string BadgeText => _server.ConnectedDevices > 0 ? $"Urządzenia: {_server.ConnectedDevices}" : "Urządzenia";
+    public string BadgeText => _server.ConnectedDevices > 0 ? Tr.F("Urządzenia: {0}", _server.ConnectedDevices) : Tr.T("Urządzenia");
 
     public bool HasDevices => _server.ConnectedDevices > 0;
 
@@ -125,8 +126,8 @@ public sealed partial class RemoteViewModel : ObservableObject
             ShortCode = invitation.ShortCode;
             PageUrl = (invitation.ShortPageUrl ?? invitation.PageUrl).ToString();
             ExpiresText = invitation.ShortExpiresAt is { } shortExpires
-                ? $"Kod ważny do {shortExpires.ToLocalTime():HH:mm} (kod QR do {invitation.ExpiresAt.ToLocalTime():HH:mm}) i tylko dla jednego urządzenia."
-                : $"Kod ważny do {invitation.ExpiresAt.ToLocalTime():HH:mm} i tylko dla jednego urządzenia.";
+                ? Tr.F("Kod ważny do {0:HH:mm} (kod QR do {1:HH:mm}) i tylko dla jednego urządzenia.", shortExpires.ToLocalTime(), invitation.ExpiresAt.ToLocalTime())
+                : Tr.F("Kod ważny do {0:HH:mm} i tylko dla jednego urządzenia.", invitation.ExpiresAt.ToLocalTime());
         }
         finally
         {
@@ -172,8 +173,8 @@ public sealed partial class RemoteDeviceViewModel(RemoteDevice device, IRemoteDe
 
     public bool IsConnected => device.IsConnected;
 
-    public string Details => (device.IsConnected ? "połączone" : "niepołączone") +
-        $" · sparowane {device.PairedAt.ToLocalTime():d MMM}";
+    public string Details => (device.IsConnected ? Tr.T("połączone") : Tr.T("niepołączone")) +
+        Tr.F(" · sparowane {0:d MMM}", device.PairedAt.ToLocalTime());
 
     public bool CanAddSongs
     {

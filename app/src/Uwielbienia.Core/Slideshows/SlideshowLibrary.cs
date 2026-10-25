@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Songs;
 
 namespace Uwielbienia.Core.Slideshows;
@@ -99,7 +100,7 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
         var presentation = files.FirstOrDefault(IsPresentation);
         List<string> sources = presentation is not null ? [presentation] : SortNaturally(files.Where(IsImage));
         if (sources.Count == 0)
-            throw new NotSupportedException("Wybierz prezentację (PowerPoint) albo obrazy.");
+            throw new NotSupportedException(Tr.T("Wybierz prezentację (PowerPoint) albo obrazy."));
 
         var title = Path.GetFileNameWithoutExtension(sources[0]);
         var folder = $"{Guid.NewGuid().ToString("N")[..8]}-{LocalSongEditor.Slug(title)}";
@@ -202,7 +203,7 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
     {
         var directory = Path.Combine(root, folder);
         if (!Directory.Exists(directory))
-            return new SlideshowState([], "Brak plików prezentacji", IsFailed: true);
+            return new SlideshowState([], Tr.T("Brak plików prezentacji"), IsFailed: true);
         if (PresentationIn(directory) is not { } presentation)
             return Ready(ImagesIn(directory));
 
@@ -216,8 +217,8 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
         if (_preparing.TryGetValue(folder, out var progress))
             return previous is not null ? Ready(previous) : new SlideshowState([], progress);
         if (!prepare)
-            return previous is not null ? Ready(previous) : new SlideshowState([], PreparingNote);
-        _preparing[folder] = PreparingNote;
+            return previous is not null ? Ready(previous) : new SlideshowState([], Tr.T(PreparingNote));
+        _preparing[folder] = Tr.T(PreparingNote);
         _ = ExportAsync(folder, presentation, slides);
         // eksport mógł już coś zgłosić (albo skończyć) — zwracamy aktualny stan
         return previous is null && _preparing.TryGetValue(folder, out var started)
@@ -254,7 +255,7 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
     }
 
     private static SlideshowState Ready(List<string> images) =>
-        images.Count > 0 ? new SlideshowState(images) : new SlideshowState([], "Brak slajdów", IsFailed: true);
+        images.Count > 0 ? new SlideshowState(images) : new SlideshowState([], Tr.T("Brak slajdów"), IsFailed: true);
 
     /// <summary>Eksport do folderu tymczasowego, potem znacznik i przeniesienie — przerwany eksport nie udaje gotowego.</summary>
     private async Task ExportAsync(string folder, string presentation, string slides)

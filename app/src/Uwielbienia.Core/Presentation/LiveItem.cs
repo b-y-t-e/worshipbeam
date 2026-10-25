@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using System.Text.RegularExpressions;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Slideshows;
@@ -76,12 +77,12 @@ public sealed partial class SongPlanItemType : IPlanItemType, ISongPresenter
         var slides = _slideBuilder.Build(song, arrangement);
         // tekst z samym tytułem: jeden slajd, na którym jest tylko tytuł (w stylu tytułu, z linią)
         if (slides.Count == 0 && song.IsText && song.Sections.Count == 0 && song.Title.Length > 0)
-            slides = [new Slide(TitleSlideCode, "Tytuł", [])];
+            slides = [new Slide(TitleSlideCode, Tr.T("Tytuł"), [])];
         var titleSpans = TitleSpans(song.Title, slides);
         if (titleSpans.Count > 0)
             slides = [MarkTitle(slides[0], titleSpans), .. slides.Skip(1)];
         var showTitle = song.Title.Length > 0 && titleSpans.Count == 0;
-        return new(planItemId, song.Id, song.Number, song.DisplayTitle, slides, showTitle, "Wszystkie części pominięte");
+        return new(planItemId, song.Id, song.Number, song.DisplayTitle, slides, showTitle, Tr.T("Wszystkie części pominięte"));
     }
 
     /// <summary>

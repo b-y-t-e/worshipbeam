@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Uwielbienia.Core.Songs;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -40,12 +41,12 @@ public sealed partial class SongEditorViewModel : ObservableObject
     public bool IsSong => !IsText;
 
     public string Heading => _draft.Original is null
-        ? IsText ? "Nowy tekst" : "Nowa pieśń"
-        : IsText ? "Edycja tekstu" : "Edycja pieśni";
+        ? IsText ? Tr.T("Nowy tekst") : Tr.T("Nowa pieśń")
+        : IsText ? Tr.T("Edycja tekstu") : Tr.T("Edycja pieśni");
 
-    public string TitlePlaceholder => IsText ? "Tytuł (opcjonalnie)" : "Tytuł";
+    public string TitlePlaceholder => IsText ? Tr.T("Tytuł (opcjonalnie)") : Tr.T("Tytuł");
 
-    public string LinesPlaceholder => IsText ? "Treść" : "Treść, akordy w nawiasie: Panie [G C D]";
+    public string LinesPlaceholder => IsText ? Tr.T("Treść") : Tr.T("Treść, akordy w nawiasie: Panie [G C D]");
 
     public IReadOnlyList<SongPartType> PartTypes => SongPartType.All;
 
@@ -100,7 +101,7 @@ public sealed partial class SongEditorViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Error = $"Nie udało się zapisać: {ex.Message}";
+            Error = Tr.F("Nie udało się zapisać: {0}", ex.Message);
         }
     }
 

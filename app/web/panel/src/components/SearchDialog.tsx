@@ -3,6 +3,7 @@ import { command } from "../connection";
 import type { SongHit } from "../protocol";
 import { Dialog } from "./Dialog";
 import { KindMark } from "./Icons";
+import { t } from "../i18n";
 
 /**
  * „Dodaj do planu”: numer albo słowa pieśni (wyszukiwarka aplikacji), Enter / kliknięcie dodaje w wybrane miejsce.
@@ -35,7 +36,7 @@ export function SearchDialog({ title, onPick, onClose }: {
 
   return (
     <Dialog title={title} onClose={onClose}>
-      <input autoFocus type="search" value={query} placeholder="Numer albo słowa pieśni" enterKeyHint="search"
+      <input autoFocus type="search" value={query} placeholder={t("Numer albo słowa pieśni")} enterKeyHint="search"
              autoComplete="off" spellCheck={false} onChange={(e) => setQuery(e.target.value)} onKeyDown={key} />
       <ul className="results">
         {hits.map((hit, i) => (
@@ -50,7 +51,7 @@ export function SearchDialog({ title, onPick, onClose }: {
           </li>
         ))}
       </ul>
-      {hits.length === 0 ? <p className="muted">Nic nie znaleziono.</p> : null}
+      {hits.length === 0 ? <p className="muted">{t("Nic nie znaleziono.")}</p> : null}
     </Dialog>
   );
 }

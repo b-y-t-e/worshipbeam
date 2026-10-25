@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Uwielbienia.App.Services;
 using Uwielbienia.App.ViewModels;
 using Uwielbienia.App.Views;
+using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Updates;
 using Uwielbienia.Link;
 using Uwielbienia.Core.Videos;
@@ -14,13 +15,13 @@ namespace Uwielbienia.App;
 public partial class App : Application
 {
     /// <summary>Adres strony pilota; kod parowania trafia w fragment (#code=…), więc nie idzie do serwera WWW.</summary>
-    public static readonly Uri RemotePageUrl = new("https://greysource.eu/uwielbienie/telefon/");
+    public static readonly Uri RemotePageUrl = new("https://greysource.eu/worshipbeam/telefon/");
 
     /// <summary>Adres panelu (drugi komputer, tablet).</summary>
-    public static readonly Uri PanelPageUrl = new("https://greysource.eu/uwielbienie/panel/");
+    public static readonly Uri PanelPageUrl = new("https://greysource.eu/worshipbeam/panel/");
 
     /// <summary>Usługa krótkich kodów do podyktowania (długi kod trafia tam na 5 minut, odczyt jednorazowy).</summary>
-    public static readonly Uri ShortCodeUrl = new("https://greysource.eu/uwielbienie/kod.php");
+    public static readonly Uri ShortCodeUrl = new("https://greysource.eu/worshipbeam/kod.php");
 
     private ServiceProvider? _services;
 
@@ -34,6 +35,8 @@ public partial class App : Application
             CrashGuard.Start(paths.ErrorLogFile);
             Transitions.TransitionLog.Start(paths.TransitionLogFile);
             _services = AppComposition.Build(paths);
+            // przed pierwszym widokiem — teksty interfejsu tłumaczą się przy wczytaniu
+            Tr.Use(_services.GetRequiredService<ISettingsStore>().Current.Language ?? Tr.SystemLanguage());
             // Film gra, gdy jego slajd jest na ekranie — nasłuchuje od początku.
             _services.GetRequiredService<VideoDirector>();
             _services.GetRequiredService<Uwielbienia.Core.AppWindows.AppWindowDirector>();

@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:l="using:Uwielbienia.App.Localization"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Uwielbienia.App.ViewModels"
              xmlns:s="using:Uwielbienia.Core.Songs"
@@ -15,20 +16,20 @@
 
       <Border Classes="confirm" IsVisible="{Binding IsDeleteConfirmationOpen}">
         <Grid ColumnDefinitions="*,Auto,10,Auto">
-          <TextBlock Classes="bodyStrong" TextWrapping="Wrap" VerticalAlignment="Center" Text="Usunąć na stałe?" />
-          <Button Grid.Column="1" Content="Anuluj" Command="{Binding CancelDeleteCommand}" />
-          <Button Grid.Column="3" Classes="danger" Content="Usuń" Command="{Binding ConfirmDeleteCommand}" />
+          <TextBlock Classes="bodyStrong" TextWrapping="Wrap" VerticalAlignment="Center" Text="{l:T 'Usunąć na stałe?'}" />
+          <Button Grid.Column="1" Content="{l:T 'Anuluj'}" Command="{Binding CancelDeleteCommand}" />
+          <Button Grid.Column="3" Classes="danger" Content="{l:T 'Usuń'}" Command="{Binding ConfirmDeleteCommand}" />
         </Grid>
       </Border>
 
       <Grid ColumnDefinitions="Auto,*,Auto,10,Auto" IsVisible="{Binding !IsDeleteConfirmationOpen}">
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="-8,0,0,0">
-          <Button Classes="quiet dangerText" Content="Usuń…" Command="{Binding RequestDeleteCommand}" IsVisible="{Binding CanDelete}" />
-          <Button Classes="quiet" Content="Przywróć oryginał" Command="{Binding RevertCommand}" IsVisible="{Binding CanRevert}"
-                  ToolTip.Tip="Usuwa zmiany zrobione na tym komputerze" />
+          <Button Classes="quiet dangerText" Content="{l:T 'Usuń…'}" Command="{Binding RequestDeleteCommand}" IsVisible="{Binding CanDelete}" />
+          <Button Classes="quiet" Content="{l:T 'Przywróć oryginał'}" Command="{Binding RevertCommand}" IsVisible="{Binding CanRevert}"
+                  ToolTip.Tip="{l:T 'Usuwa zmiany zrobione na tym komputerze'}" />
         </StackPanel>
-        <Button Grid.Column="2" Content="Anuluj" Command="{Binding CancelCommand}" />
-        <Button Grid.Column="4" Classes="primary" Content="Zapisz" Command="{Binding SaveCommand}" />
+        <Button Grid.Column="2" Content="{l:T 'Anuluj'}" Command="{Binding CancelCommand}" />
+        <Button Grid.Column="4" Classes="primary" Content="{l:T 'Zapisz'}" Command="{Binding SaveCommand}" />
       </Grid>
     </StackPanel>
 
@@ -43,7 +44,7 @@
                      tekst: sama treść. ✕ zawsze w prawym górnym rogu. -->
                 <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
                   <Border Grid.RowSpan="2" Classes="editorPartHandle" Background="Transparent" Cursor="SizeNorthSouth"
-                          Padding="4,6,8,6" VerticalAlignment="Top" ToolTip.Tip="Przeciągnij, żeby zmienić kolejność">
+                          Padding="4,6,8,6" VerticalAlignment="Top" ToolTip.Tip="{l:T 'Przeciągnij, żeby zmienić kolejność'}">
                     <TextBlock Classes="caption" Text="⠿" Foreground="{DynamicResource MutedBrush}" />
                   </Border>
                   <ComboBox Grid.Column="1" ItemsSource="{Binding $parent[ItemsControl].((vm:SongEditorViewModel)DataContext).PartTypes}"
@@ -57,7 +58,7 @@
                   </ComboBox>
                   <TextBox Grid.Row="1" Grid.Column="1" Classes="lyrics" Text="{Binding Text}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="96"
                            PlaceholderText="{Binding $parent[ItemsControl].((vm:SongEditorViewModel)DataContext).LinesPlaceholder}" />
-                  <Button Grid.Column="2" Grid.RowSpan="2" Classes="quiet removeItem" Content="✕" ToolTip.Tip="Usuń część"
+                  <Button Grid.Column="2" Grid.RowSpan="2" Classes="quiet removeItem" Content="✕" ToolTip.Tip="{l:T 'Usuń część'}"
                           VerticalAlignment="Top" Margin="6,0,0,0"
                           Command="{Binding $parent[ItemsControl].((vm:SongEditorViewModel)DataContext).RemovePartCommand}"
                           CommandParameter="{Binding}" />
@@ -71,20 +72,20 @@
         </ItemsControl>
 
         <Grid ColumnDefinitions="Auto,*" HorizontalAlignment="Left">
-          <Button Content="+ Dodaj część" IsVisible="{Binding IsText}" Command="{Binding AddPartCommand}" CommandParameter="{x:Null}" />
-          <Button Content="+ Dodaj część" IsVisible="{Binding IsSong}">
+          <Button Content="{l:T '+ Dodaj część'}" IsVisible="{Binding IsText}" Command="{Binding AddPartCommand}" CommandParameter="{x:Null}" />
+          <Button Content="{l:T '+ Dodaj część'}" IsVisible="{Binding IsSong}">
             <Button.Flyout>
               <MenuFlyout>
-                <MenuItem Header="Zwrotka" Command="{Binding AddPartCommand}" CommandParameter="V" />
-                <MenuItem Header="Refren" Command="{Binding AddPartCommand}" CommandParameter="C" />
-                <MenuItem Header="Przedrefren" Command="{Binding AddPartCommand}" CommandParameter="PC" />
-                <MenuItem Header="Mostek" Command="{Binding AddPartCommand}" CommandParameter="B" />
-                <MenuItem Header="Wstęp" Command="{Binding AddPartCommand}" CommandParameter="I" />
-                <MenuItem Header="Interludium" Command="{Binding AddPartCommand}" CommandParameter="INT" />
-                <MenuItem Header="Refren końcowy" Command="{Binding AddPartCommand}" CommandParameter="FC" />
-                <MenuItem Header="Tag" Command="{Binding AddPartCommand}" CommandParameter="T" />
-                <MenuItem Header="Zakończenie" Command="{Binding AddPartCommand}" CommandParameter="E" />
-                <MenuItem Header="Inne" Command="{Binding AddPartCommand}" CommandParameter="O" />
+                <MenuItem Header="{l:T 'Zwrotka'}" Command="{Binding AddPartCommand}" CommandParameter="V" />
+                <MenuItem Header="{l:T 'Refren'}" Command="{Binding AddPartCommand}" CommandParameter="C" />
+                <MenuItem Header="{l:T 'Przedrefren'}" Command="{Binding AddPartCommand}" CommandParameter="PC" />
+                <MenuItem Header="{l:T 'Mostek'}" Command="{Binding AddPartCommand}" CommandParameter="B" />
+                <MenuItem Header="{l:T 'Wstęp'}" Command="{Binding AddPartCommand}" CommandParameter="I" />
+                <MenuItem Header="{l:T 'Interludium'}" Command="{Binding AddPartCommand}" CommandParameter="INT" />
+                <MenuItem Header="{l:T 'Refren końcowy'}" Command="{Binding AddPartCommand}" CommandParameter="FC" />
+                <MenuItem Header="{l:T 'Tag'}" Command="{Binding AddPartCommand}" CommandParameter="T" />
+                <MenuItem Header="{l:T 'Zakończenie'}" Command="{Binding AddPartCommand}" CommandParameter="E" />
+                <MenuItem Header="{l:T 'Inne'}" Command="{Binding AddPartCommand}" CommandParameter="O" />
               </MenuFlyout>
             </Button.Flyout>
           </Button>

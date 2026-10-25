@@ -2,4 +2,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Uwielbienia.Core.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Tłumaczenia interfejsu: Localization/{język}/*.json — klucz = tekst polski. -->
+    <EmbeddedResource Include="Localization\**\*.json" LogicalName="Localization/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

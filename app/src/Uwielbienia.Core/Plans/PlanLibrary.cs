@@ -1,3 +1,4 @@
+using Uwielbienia.Core.Localization;
 using System.Globalization;
 
 namespace Uwielbienia.Core.Plans;
@@ -77,7 +78,7 @@ public sealed class PlanLibrary(IPlanStore store, ActivePlan active)
 
     /// <summary>Przy starcie: ostatnio otwarty plan albo nowe „Uwielbienie” z dzisiejszą datą.</summary>
     public Plan OpenInitial(Guid? lastPlanId) =>
-        (lastPlanId is { } id ? Open(id) : null) ?? Create(DefaultEventName, Today, PlanKind.Event);
+        (lastPlanId is { } id ? Open(id) : null) ?? Create(Tr.T(DefaultEventName), Today, PlanKind.Event);
 
     /// <summary>Nowe wydarzenie na dziś z tymi samymi pozycjami — z szablonu albo z wcześniejszego wydarzenia; otwarte.</summary>
     public Plan? CopyToToday(Guid planId)
@@ -123,6 +124,6 @@ public sealed class PlanLibrary(IPlanStore store, ActivePlan active)
         if (plan.Date is not { } date)
             return plan.Name;
         var name = plan.Name.Replace(date.ToString("d MMMM yyyy", Polish), "", StringComparison.CurrentCultureIgnoreCase).Trim(' ', '—', '-');
-        return name.Length > 0 ? name : DefaultEventName;
+        return name.Length > 0 ? name : Tr.T(DefaultEventName);
     }
 }

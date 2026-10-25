@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Uwielbienia.App.Services;
 using Uwielbienia.Core.AppWindows;
 using Uwielbienia.Core.Plans;
+using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
 
@@ -25,7 +26,7 @@ public sealed partial class AppWindowLiveViewModel : ObservableObject
     public bool IsWaiting => _capture.Shown is null;
 
     /// <summary>Program nie jest uruchomiony albo jego okna nie da się pokazać — sala widzi czarny ekran.</summary>
-    public string Status => _capture.Unavailable ?? _capture.Failure ?? (_capture.Shown is null ? "Program nie jest uruchomiony — ekran jest czarny" : "");
+    public string Status => _capture.Unavailable ?? _capture.Failure ?? (_capture.Shown is null ? Tr.T("Program nie jest uruchomiony — ekran jest czarny") : "");
 }
 
 /// <summary>Kolumna „Pieśń” dla aplikacji: który program będzie pokazywany.</summary>
@@ -36,7 +37,7 @@ public sealed class AppWindowDetailsViewModel(AppWindowPlanItem item, IAppWindow
     public string Title => Item.Title;
 
     /// <summary>Aplikacja ze Sklepu — po tytule okna, zwykły program — po nazwie (dowolne jego okno).</summary>
-    public string Source => Item.WindowTitle is { } window ? $"Okno „{window}”" : $"Program {Item.Process}";
+    public string Source => Item.WindowTitle is { } window ? Tr.F("Okno „{0}”", window) : Tr.F("Program {0}", Item.Process);
 
     public string? Unavailable { get; } = capture.Unavailable;
 }

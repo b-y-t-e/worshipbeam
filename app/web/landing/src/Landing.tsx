@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import icon from "../../remote/icon.png";
+import { initialLanguage, LANGUAGES, rememberLanguage, translator, type Language } from "./i18n";
 
-const RELEASES = "https://github.com/b-y-t-e/uwielbienia/releases/latest";
+const RELEASES = "https://github.com/b-y-t-e/worshipbeam/releases/latest";
 
 interface Line {
   text: string;
@@ -34,10 +35,10 @@ function useSlide(count: number, interval: number) {
   return index;
 }
 
-function Projection() {
+function Projection({ label }: { label: string }) {
   const current = useSlide(SLIDES.length, 5200);
   return (
-    <figure className="projection" aria-label="Tak wygląda pieśń na rzutniku">
+    <figure className="projection" aria-label={label}>
       {SLIDES.map((lines, i) => (
         <div key={i} className={`slide${i === current ? " shown" : ""}`} aria-hidden={i !== current}>
           {lines.map((line, j) => (
@@ -55,46 +56,56 @@ function Projection() {
 
 /** Strona startowa: czym jest program, dwie strony do połączenia z nim (pilot, panel) i pobranie. */
 export function Landing() {
+  const [language, setLanguage] = useState<Language>(initialLanguage);
+  const t = translator(language);
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
+  const choose = (l: Language) => { rememberLanguage(l); setLanguage(l); };
   return (
     <div className="page">
       <header className="bar">
         <a className="brand" href="./">
           <img src={icon} alt="" width="36" height="36" />
-          Uwielbienia
+          WorshipBeam
         </a>
-        <a className="download" href={`${RELEASES}/download/Uwielbienia-win-Setup.exe`}>Pobierz<span className="download-long"> dla Windows</span></a>
+        <span className="bar-end">
+          <span className="languages" role="group" aria-label={t("Język")}>
+            {LANGUAGES.map((l) => (
+              <button key={l} lang={l} className={l === language ? "active" : ""} aria-pressed={l === language}
+                      onClick={() => choose(l)}>{l.toUpperCase()}</button>
+            ))}
+          </span>
+        <a className="download" href={`${RELEASES}/download/Uwielbienia-win-Setup.exe`}>{t("Pobierz")}<span className="download-long">{t(" dla Windows")}</span></a>
+        </span>
       </header>
 
       <main className="hero">
         <div className="intro">
-          <h1>Pieśni na rzutniku, prowadzone z jednego miejsca</h1>
+          <h1>{t("Pieśni na rzutniku, prowadzone z jednego miejsca")}</h1>
           <p className="lead">
-            Śpiewnik z akordami, plan nabożeństwa, prezentacje i filmy w programie na komputerze przy rzutniku.
-            Telefon muzyka i drugi komputer łączą się z nim przez tę stronę.
+            {t("Śpiewnik z akordami, plan nabożeństwa, prezentacje i filmy w programie na komputerze przy rzutniku. Telefon muzyka i drugi komputer łączą się z nim przez tę stronę.")}
           </p>
         </div>
-        <Projection />
+        <Projection label={t("Tak wygląda pieśń na rzutniku")} />
       </main>
 
-      <nav className="routes" aria-label="Połącz się z programem">
+      <nav className="routes" aria-label={t("Połącz się z programem")}>
         <a className="route" href="telefon/">
           <svg className="glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5" /><path d="M10.5 18.5h3" /></svg>
-          <span className="route-name">Pilot w telefonie</span>
-          <span className="route-text">Bieżący i następny slajd z akordami, Dalej i Wstecz pod kciukiem.</span>
+          <span className="route-name">{t("Pilot w telefonie")}</span>
+          <span className="route-text">{t("Bieżący i następny slajd z akordami, Dalej i Wstecz pod kciukiem.")}</span>
         </a>
         <a className="route" href="panel/">
           <svg className="glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2" /><path d="M8 20.5h8M12 17v3.5" /></svg>
-          <span className="route-name">Panel na komputerze lub tablecie</span>
-          <span className="route-text">Plany, kolejność pieśni, układ zwrotek i to, co widzi sala.</span>
+          <span className="route-name">{t("Panel na komputerze lub tablecie")}</span>
+          <span className="route-text">{t("Plany, kolejność pieśni, układ zwrotek i to, co widzi sala.")}</span>
         </a>
       </nav>
 
       <footer className="foot">
         <p>
-          Pierwsze połączenie: w programie otwórz „Urządzenia” i zeskanuj kod albo wpisz krótki kod.
-          Potem łączy się samo.
+          {t("Pierwsze połączenie: w programie otwórz „Urządzenia” i zeskanuj kod albo wpisz krótki kod. Potem łączy się samo.")}
         </p>
-        <a href={RELEASES}>Wersja dla Linuksa i poprzednie wydania</a>
+        <a href={RELEASES}>{t("Wersja dla Linuksa i poprzednie wydania")}</a>
       </footer>
     </div>
   );

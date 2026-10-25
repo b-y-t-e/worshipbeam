@@ -6,6 +6,7 @@ import { useReorder } from "../reorder";
 import { GripIcon } from "./Icons";
 import { Lines } from "./Lines";
 import { Menu, type MenuAction } from "./Menu";
+import { t } from "../i18n";
 
 const kindTitle: Record<string, string> = {
   song: "Pieśń", text: "Tekst", presentation: "Prezentacja", video: "Film", kiosk: "Kiosk", app: "Aplikacja",
@@ -50,28 +51,28 @@ export function ItemColumn({ itemId, planVersion, chords }: { itemId: string | n
   if (!item) {
     return (
       <section className="column item-column">
-        <header className="column-head"><h2>Pieśń</h2></header>
-        <p className="muted empty">{itemId ? "Wczytywanie…" : "Wybierz pozycję w planie."}</p>
+        <header className="column-head"><h2>{t("Pieśń")}</h2></header>
+        <p className="muted empty">{t(itemId ? "Wczytywanie…" : "Wybierz pozycję w planie.")}</p>
       </section>
     );
   }
 
-  const origin = item.origin === "local" ? (item.kind === "text" ? "własny tekst" : "własna pieśń")
-    : item.origin === "modified" ? "zmieniona na tym komputerze" : null;
+  const origin = item.origin === "local" ? t(item.kind === "text" ? "własny tekst" : "własna pieśń")
+    : item.origin === "modified" ? t("zmieniona na tym komputerze") : null;
   const partActions = (part: PartMessage, index: number): MenuAction[] => [
     ...(item.canReorder ? [{
-      label: "Powtórz",
+      label: t("Powtórz"),
       onSelect: () => change((layout) => layout.splice(index + 1, 0, { code: part.code, sung: part.sung })),
     }] : []),
-    { label: "Usuń z układu", danger: true, onSelect: () => change((layout) => layout.splice(index, 1)) },
+    { label: t("Usuń z układu"), danger: true, onSelect: () => change((layout) => layout.splice(index, 1)) },
   ];
 
   return (
     <section className="column item-column">
       <header className="column-head">
-        <h2>{kindTitle[item.kind] ?? "Pozycja"}</h2>
+        <h2>{t(kindTitle[item.kind] ?? "Pozycja")}</h2>
         {item.slideCount > 0 ? (
-          <button onClick={() => void command("showItem", { itemId: item.itemId })}>Pokaż na ekranie</button>
+          <button onClick={() => void command("showItem", { itemId: item.itemId })}>{t("Pokaż na ekranie")}</button>
         ) : null}
       </header>
       <div className="scroll">
@@ -87,12 +88,12 @@ export function ItemColumn({ itemId, planVersion, chords }: { itemId: string | n
         ) : null}
         {item.note ? <p className="note">{item.note}</p> : null}
         {!item.parts ? (
-          <p className="muted">{item.slideCount === 1 ? "1 slajd" : `Slajdy: ${item.slideCount}`}</p>
+          <p className="muted">{item.slideCount === 1 ? t("1 slajd") : t("Slajdy: {0}", item.slideCount)}</p>
         ) : null}
         {item.images ? (
           <div className="thumbnails">
             {item.images.map((key, index) => (
-              <button key={`${index}-${key}`} className="thumbnail" title={`Pokaż slajd ${index + 1}`}
+              <button key={`${index}-${key}`} className="thumbnail" title={t("Pokaż slajd {0}", index + 1)}
                       onClick={() => void command("showItem", { itemId: item.itemId, slide: index })}>
                 <Thumbnail imageKey={key} />
                 <span>{index + 1}</span>
@@ -110,7 +111,7 @@ export function ItemColumn({ itemId, planVersion, chords }: { itemId: string | n
                 ) : null}
                 <label className="part-name" htmlFor={`part-${index}`}>{part.name}</label>
                 <Menu actions={partActions(part, index)} />
-                <input id={`part-${index}`} type="checkbox" checked={part.sung} title={part.sung ? "Śpiewana" : "Pominięta"}
+                <input id={`part-${index}`} type="checkbox" checked={part.sung} title={t(part.sung ? "Śpiewana" : "Pominięta")}
                        onChange={(e) => change((layout) => { layout[index].sung = e.target.checked; })} />
               </header>
               <Lines lines={part.lines} chords={chords && item.kind === "song"} />
@@ -119,7 +120,7 @@ export function ItemColumn({ itemId, planVersion, chords }: { itemId: string | n
         </div>
         {item.removed && item.removed.length > 0 ? (
           <div className="restore">
-            <span className="muted small">Przywróć usuniętą część:</span>
+            <span className="muted small">{t("Przywróć usuniętą część:")}</span>
             {item.removed.map((s) => (
               <button key={s.code} onClick={() => change((layout) => { layout.push({ code: s.code, sung: true }); })}>
                 {s.name}

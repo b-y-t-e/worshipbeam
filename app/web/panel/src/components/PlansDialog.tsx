@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { command } from "../connection";
 import type { PlanSummaryMessage, PlansMessage } from "../protocol";
 import { Confirm, Dialog } from "./Dialog";
+import { getLanguage, locale, t } from "../i18n";
 
 const formatDate = (date?: string | null) =>
-  date ? new Date(`${date}T12:00`).toLocaleDateString("pl-PL", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : null;
+  date ? new Date(`${date}T12:00`).toLocaleDateString(locale(), { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : null;
 
 const isFew = (n: number) => n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14);
 
 const countText = (n: number) =>
-  n === 0 ? "bez pozycji" : n === 1 ? "1 pozycja" : `${n} ${isFew(n) ? "pozycje" : "pozycji"}`;
+  n === 0 ? t("bez pozycji") : n === 1 ? t("1 pozycja")
+    : getLanguage() === "pl" ? `${n} ${isFew(n) ? "pozycje" : "pozycji"}` : t("{0} pozycji", n);
 
 const today = () => new Date().toLocaleDateString("sv-SE"); // RRRR-MM-DD
 
@@ -68,13 +70,13 @@ export function PlansDialog({ plans, onClose }: { plans: PlansMessage | null; on
   };
 
   return (
-    <Dialog title="Plany" onClose={onClose} wide>
+    <Dialog title={t("Plany")} onClose={onClose} wide>
       <div className="plans-bar">
         <div className="segmented">
-          <button className={templates ? "" : "active"} onClick={() => switchTab(false)}>Wydarzenia</button>
-          <button className={templates ? "active" : ""} onClick={() => switchTab(true)}>Szablony</button>
+          <button className={templates ? "" : "active"} onClick={() => switchTab(false)}>{t("Wydarzenia")}</button>
+          <button className={templates ? "active" : ""} onClick={() => switchTab(true)}>{t("Szablony")}</button>
         </div>
-        <button className="primary" onClick={startNew}>{templates ? "+ Nowy szablon" : "+ Nowe wydarzenie"}</button>
+        <button className="primary" onClick={startNew}>{t(templates ? "+ Nowy szablon" : "+ Nowe wydarzenie")}</button>
       </div>
       <div className="plans-body">
         <ul className="plans-list scroll">
@@ -82,49 +84,49 @@ export function PlansDialog({ plans, onClose }: { plans: PlansMessage | null; on
             <li key={p.id}>
               <button className={`plan-row${p.id === selected?.id && !creating ? " selected" : ""}`}
                       onClick={() => { setCreating(false); setSelectedId(p.id); }} onDoubleClick={open}>
-                <span className="plan-row-name">{p.name}{p.isOpen ? <span className="badge">otwarty</span> : null}</span>
+                <span className="plan-row-name">{p.name}{p.isOpen ? <span className="badge">{t("otwarty")}</span> : null}</span>
                 <span className="muted small">{[formatDate(p.date), countText(p.count)].filter(Boolean).join(" · ")}</span>
               </button>
             </li>
           ))}
           {list.length === 0 ? (
-            <li className="muted">{templates
+            <li className="muted">{t(templates
               ? "Nie ma jeszcze szablonów. Szablon to stały zestaw pieśni bez daty — tworzy się z niego kolejne wydarzenia."
-              : "Nie ma jeszcze wydarzeń. Wydarzenie to plan pieśni na konkretny dzień."}</li>
+              : "Nie ma jeszcze wydarzeń. Wydarzenie to plan pieśni na konkretny dzień.")}</li>
           ) : null}
         </ul>
         {creating || selected ? (
           <form className="plan-form" onSubmit={(e) => { e.preventDefault(); void (creating ? create() : save()); }}>
-            <h3>{creating ? (templates ? "Nowy szablon" : "Nowe wydarzenie") : templates ? "Szablon" : "Wydarzenie"}</h3>
-            <label>Nazwa<input value={name} placeholder="Wpisz nazwę" onChange={(e) => setName(e.target.value)} autoFocus={creating} /></label>
-            {templates ? null : <label>Data<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>}
+            <h3>{t(creating ? (templates ? "Nowy szablon" : "Nowe wydarzenie") : templates ? "Szablon" : "Wydarzenie")}</h3>
+            <label>{t("Nazwa")}<input value={name} placeholder={t("Wpisz nazwę")} onChange={(e) => setName(e.target.value)} autoFocus={creating} /></label>
+            {templates ? null : <label>{t("Data")}<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>}
             {creating ? (
               <div className="form-buttons">
-                <button type="button" onClick={() => setCreating(false)}>Anuluj</button>
-                <button type="submit" className="primary" disabled={!valid}>Utwórz i otwórz</button>
+                <button type="button" onClick={() => setCreating(false)}>{t("Anuluj")}</button>
+                <button type="submit" className="primary" disabled={!valid}>{t("Utwórz i otwórz")}</button>
               </div>
             ) : (
               <>
                 <div className="form-buttons">
-                  {dirty ? <button type="submit" disabled={!valid}>Zapisz</button> : null}
+                  {dirty ? <button type="submit" disabled={!valid}>{t("Zapisz")}</button> : null}
                   <button type="button" className="primary" onClick={open}>
-                    {selected?.isOpen ? "Zamknij okno" : templates ? "Edytuj pieśni" : "Otwórz"}
+                    {t(selected?.isOpen ? "Zamknij okno" : templates ? "Edytuj pieśni" : "Otwórz")}
                   </button>
                 </div>
                 <div className="form-buttons secondary">
-                  <button type="button" onClick={copyToToday}>{templates ? "Utwórz wydarzenie na dziś" : "Kopia na dziś"}</button>
-                  {templates ? null : <button type="button" onClick={saveAsTemplate}>Zapisz jako szablon</button>}
+                  <button type="button" onClick={copyToToday}>{t(templates ? "Utwórz wydarzenie na dziś" : "Kopia na dziś")}</button>
+                  {templates ? null : <button type="button" onClick={saveAsTemplate}>{t("Zapisz jako szablon")}</button>}
                   <button type="button" className="danger-text" disabled={selected?.isOpen}
-                          title={selected?.isOpen ? "Otwartego planu nie można usunąć" : undefined}
-                          onClick={() => setConfirmDelete(true)}>Usuń</button>
+                          title={selected?.isOpen ? t("Otwartego planu nie można usunąć") : undefined}
+                          onClick={() => setConfirmDelete(true)}>{t("Usuń")}</button>
                 </div>
               </>
             )}
           </form>
-        ) : <p className="muted plan-form">Wybierz plan z listy.</p>}
+        ) : <p className="muted plan-form">{t("Wybierz plan z listy.")}</p>}
       </div>
       {confirmDelete && selected ? (
-        <Confirm text={`Usunąć „${selected.name}”? Tego nie da się cofnąć.`} action="Usuń plan"
+        <Confirm text={t("Usunąć „{0}”? Tego nie da się cofnąć.", selected.name)} action={t("Usuń plan")}
                  onConfirm={remove} onCancel={() => setConfirmDelete(false)} />
       ) : null}
     </Dialog>
