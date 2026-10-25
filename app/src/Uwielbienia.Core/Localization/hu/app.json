@@ -1,3 +1,6 @@
 {
-  "Język": "Nyelv"
+  "Język": "Nyelv",
+  "{0} z {1} · co {2:0} s": "{0}/{1} · {2:0} mp-ként",
+  " · zatrzymany": " · szüneteltetve",
+  "{0} z {1} · {2:0}%": "{0}/{1} · {2:0}%"
 }

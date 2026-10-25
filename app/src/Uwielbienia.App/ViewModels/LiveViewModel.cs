@@ -122,7 +122,7 @@ public sealed partial class LiveViewModel : ObservableObject
 
     public string ProgressText => Slides.Count == 0
         ? ""
-        : $"{State.SlideIndex + 1} z {Slides.Count} · {ProgressValue:0}%";
+        : Tr.F("{0} z {1} · {2:0}%", State.SlideIndex + 1, Slides.Count, ProgressValue);
 
     [RelayCommand]
     private void Next() => _control.Next();

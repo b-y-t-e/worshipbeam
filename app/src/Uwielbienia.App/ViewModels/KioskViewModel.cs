@@ -304,7 +304,7 @@ public sealed partial class KioskPlayback : ObservableObject
 
     /// <summary>Dla operatora, np. „2 z 5 · co 8 s”.</summary>
     public string? PositionText => _rotation.Slide is { } slide
-        ? $"{_rotation.Index + 1} z {_rotation.Count} · co {slide.Interval.TotalSeconds:0} s" + (_rotation.IsRunning || _rotation.Count < 2 ? "" : " · zatrzymany")
+        ? Tr.F("{0} z {1} · co {2:0} s", _rotation.Index + 1, _rotation.Count, slide.Interval.TotalSeconds) + (_rotation.IsRunning || _rotation.Count < 2 ? "" : Tr.T(" · zatrzymany"))
         : null;
 
     /// <summary>Nowy element pokazuje się dopiero z wczytanym obrazem — przejście ma co sfotografować.</summary>

@@ -1,3 +1,6 @@
 {
-  "Język": "Jezik"
+  "Język": "Jezik",
+  "{0} z {1} · co {2:0} s": "{0} od {1} · svakih {2:0} s",
+  " · zatrzymany": " · zaustavljeno",
+  "{0} z {1} · {2:0}%": "{0} od {1} · {2:0}%"
 }

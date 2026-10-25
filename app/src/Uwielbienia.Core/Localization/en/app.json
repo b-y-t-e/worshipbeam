@@ -1,3 +1,6 @@
 {
-  "Język": "Language"
+  "Język": "Language",
+  "{0} z {1} · co {2:0} s": "{0} of {1} · every {2:0} s",
+  " · zatrzymany": " · paused",
+  "{0} z {1} · {2:0}%": "{0} of {1} · {2:0}%"
 }

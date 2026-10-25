@@ -24,6 +24,8 @@ var output = args.Length > 0 ? args[0] : Path.Combine(Path.GetTempPath(), "uwiel
 var light = args.Contains("light");
 var videoArg = Array.IndexOf(args, "--video") is var at and >= 0 && at + 1 < args.Length ? args[at + 1] : null;
 var appArg = Array.IndexOf(args, "--app-window") is var appAt and >= 0 && appAt + 1 < args.Length ? args[appAt + 1].Split('|', 2) : null;
+// --lang en: interfejs w innym języku (np. zrzuty do README)
+Uwielbienia.Core.Localization.Tr.Use(Array.IndexOf(args, "--lang") is var langAt and >= 0 && langAt + 1 < args.Length ? args[langAt + 1] : null);
 Directory.CreateDirectory(output);
 
 AppBuilder.Configure<App>()
@@ -122,7 +124,7 @@ if (window.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Flyout 
     // „Brak efektu” — sam, bez efektów i przenikania; wybrany efekt go odznacza
     main.Transitions.Choice.IsCut = true;
     if (active.Plan!.ChosenTransitions is not [SlideTransition.None] || main.Transitions.Choice.IsCrossFade
-        || main.Transitions.Choice.Options.Any(o => o.IsSelected) || main.Transitions.ShortText != "Brak efektu")
+        || main.Transitions.Choice.Options.Any(o => o.IsSelected) || main.Transitions.ShortText != Uwielbienia.Core.Localization.Tr.T("Brak efektu"))
         throw new InvalidOperationException("„Brak efektu” nie trafił do planu");
     main.Transitions.Choice.Options[2].IsSelected = true;
     if (main.Transitions.Choice.IsCut || active.Plan!.ChosenTransitions is not [SlideTransition.Flame])
