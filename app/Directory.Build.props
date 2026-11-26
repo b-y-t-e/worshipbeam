@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AvaloniaVersion>12.1.3</AvaloniaVersion>
+    <AvaloniaVersion>12.2.0</AvaloniaVersion>
     <!-- vpk w .github/workflows/release.yml czyta tę wersję — musi się zgadzać z biblioteką -->
-    <VelopackVersion>1.2.158</VelopackVersion>
+    <VelopackVersion>1.2.161</VelopackVersion>
   </PropertyGroup>
 </Project>

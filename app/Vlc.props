@@ -9,6 +9,6 @@
     <VlcWindowsX64ExcludeFiles Include="lua\%2A%2A;plugins\lua\%2A%2A;plugins\access_output\%2A%2A;plugins\stream_out\%2A%2A;plugins\mux\%2A%2A;plugins\services_discovery\%2A%2A;plugins\visualization\%2A%2A;plugins\video_splitter\%2A%2A;plugins\keystore\%2A%2A" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.24" />
   </ItemGroup>
 </Project>
