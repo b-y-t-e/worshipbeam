@@ -71,6 +71,106 @@ public class KioskTests
     }
 
     [Fact]
+    public void Several_captions_of_one_image_become_several_frames_with_their_own_time()
+    {
+        _slideshows.Ready("obraz", "obraz/001.png");
+        var style = new KioskCaptionStyle(KioskCaptionPlacement.Over, KioskCaptionPosition.Middle, Reveal: KioskTextReveal.Word);
+        var kiosk = Kiosk(new KioskEntry("obraz", Captions:
+        [
+            new KioskCaption(Text: "Pierwszy", Seconds: 5),
+            new KioskCaption("Drugi", "z tytułem"),
+            new KioskCaption(Text: "  "),
+        ], Style: style)) with { Seconds = 12 };
+
+        var slide = Assert.IsType<KioskSlide>(Assert.Single(_type.Present(kiosk)!.Slides));
+
+        Assert.Equal(
+            [
+                new KioskFrame("obraz/001.png", null, "Pierwszy", style, 5),
+                new KioskFrame("obraz/001.png", "Drugi", "z tytułem", style),
+            ],
+            slide.Frames);
+        // własny czas napisu, a bez niego czas kiosku; zoom zdjęcia trwa przez oba napisy
+        Assert.Equal(TimeSpan.FromSeconds(5), slide.Duration(0));
+        Assert.Equal(TimeSpan.FromSeconds(12), slide.Duration(1));
+        Assert.Equal(TimeSpan.FromSeconds(17), slide.RunDuration(0));
+        Assert.Equal(TimeSpan.FromSeconds(12), slide.RunDuration(1));
+        Assert.Equal(KioskLayout.TextOver, slide.Frames[0].LayoutFor(16 / 9.0));
+    }
+
+    [Fact]
+    public void One_caption_saves_like_before_and_several_keep_their_own_times()
+    {
+        var one = new KioskEntry("obraz").WithTexts([new KioskCaption("Tytuł", "Tekst")]);
+        var many = new KioskEntry("obraz").WithTexts([new KioskCaption(Text: "a", Seconds: 4), new KioskCaption(Text: "b")]);
+        var none = new KioskEntry("obraz", "Tytuł", "Tekst").WithTexts([new KioskCaption(Text: " ")]);
+
+        Assert.Equal(new KioskEntry("obraz", "Tytuł", "Tekst"), one);
+        Assert.Null(one.Captions);
+        Assert.Equal([new KioskCaption(Text: "a", Seconds: 4), new KioskCaption(Text: "b")], many.Texts);
+        Assert.Null(many.Title);
+        Assert.False(none.HasText);
+
+        // ta sama treść to ten sam element (lista napisów porównuje się treścią)
+        Assert.Equal(many, new KioskEntry("obraz").WithTexts([new KioskCaption(Text: "a", Seconds: 4), new KioskCaption(Text: "b")]));
+    }
+
+    [Fact]
+    public void Caption_style_survives_saving_and_older_entries_use_the_default()
+    {
+        var style = new KioskCaptionStyle(KioskCaptionPlacement.Over, KioskCaptionPosition.Top, 140, Scrim: false, KioskTextReveal.Line, 1.5);
+        var kiosk = Kiosk(new KioskEntry("obraz", Text: "Napis", Style: style), new KioskEntry(Text: "Bez stylu"));
+
+        var loaded = Assert.IsType<KioskPlanItem>(RoundTrip(kiosk));
+
+        Assert.Equal(style, loaded.Entries[0].ChosenStyle);
+        Assert.Equal(1.4, loaded.Entries[0].ChosenStyle.Zoom, 3);
+        Assert.Equal(TimeSpan.FromSeconds(1.5), loaded.Entries[0].ChosenStyle.Reveals);
+        // element bez własnego wyglądu: domyślny, a sam napis (bez obrazu) stoi na środku ekranu — jak dotąd
+        Assert.Null(loaded.Entries[1].Style);
+        Assert.Equal(KioskCaptionStyle.Default with { Position = KioskCaptionPosition.Middle }, loaded.Entries[1].ChosenStyle);
+        Assert.Equal(KioskCaptionPosition.Middle, loaded.Entries[1].Position);
+        // domyślny styl nie pokazuje napisu na obrazie i nie animuje tekstu
+        Assert.Equal(TimeSpan.Zero, KioskCaptionStyle.Default.Reveals);
+        Assert.Equal(KioskCaptionPosition.Bottom, KioskCaptionStyle.Default.Position);
+    }
+
+    [Fact]
+    public void Next_caption_of_one_image_stays_in_the_same_run_but_a_new_round_starts_it_again()
+    {
+        var slide = new KioskSlide(
+            [new KioskFrame("a.png", null, "raz"), new KioskFrame("a.png", null, "dwa"), new KioskFrame("b.png", null, "trzy")],
+            TimeSpan.FromSeconds(8));
+
+        Assert.True(slide.ContinuesRun(0, 1));
+        // inne zdjęcie, zawinięcie na początek i skok operatora to nowy pokaz zdjęcia (zoom rusza od nowa)
+        Assert.False(slide.ContinuesRun(1, 2));
+        Assert.False(slide.ContinuesRun(2, 0));
+        Assert.False(slide.ContinuesRun(1, 0));
+        Assert.False(slide.ContinuesRun(-1, 0));
+    }
+
+    [Fact]
+    public void Rotation_gives_every_caption_its_own_time()
+    {
+        var style = KioskCaptionStyle.Default;
+        var slide = new KioskSlide(
+            [new KioskFrame("a.png", null, "raz", style, 4), new KioskFrame("a.png", null, "dwa", style), new KioskFrame(null, null, "trzy", style, 30)],
+            TimeSpan.FromSeconds(8));
+        var session = new LiveSession();
+        var item = new LiveItem(Guid.NewGuid(), "kiosk", null, "Kiosk", [slide], false);
+        session.SetPlaylist([item]);
+        using var rotation = new KioskRotation(session);
+        session.Show(item);
+
+        Assert.Equal(TimeSpan.FromSeconds(4), slide.Duration(rotation.Index));
+        rotation.Advance();
+        Assert.Equal(TimeSpan.FromSeconds(8), slide.Duration(rotation.Index));
+        rotation.Advance();
+        Assert.Equal(TimeSpan.FromSeconds(30), slide.Duration(rotation.Index));
+    }
+
+    [Fact]
     public void Empty_kiosk_has_no_slides_and_a_note_in_the_plan()
     {
         var kiosk = Kiosk(new KioskEntry(Text: ""));

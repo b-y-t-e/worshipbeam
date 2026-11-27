@@ -157,5 +157,20 @@
   "Wyłącz projekcję (F5)": "Isključi projekciju (F5)",
   "Esc wraca do okna operatora, F5 wyłącza projekcję": "Esc vraća u prozor operatera, F5 isključuje projekciju",
   "Pełny ekran na drugim monitorze (F5)": "Cijeli zaslon na drugom monitoru (F5)",
-  "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)": "Nema drugog zaslona — projekcija će prekriti ovaj prozor, Esc vraća (F5)"
+  "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)": "Nema drugog zaslona — projekcija će prekriti ovaj prozor, Esc vraća (F5)",
+  "Na obrazie": "Na slici",
+  "Obraz na cały ekran, napis na nim": "Slika preko cijelog zaslona, natpis na njoj",
+  "Góra": "Vrh",
+  "Środek": "Sredina",
+  "Dół": "Dno",
+  "Wielkość liter": "Veličina slova",
+  "Przyciemnienie": "Zatamnjenje",
+  "Żeby napis był czytelny na jasnym zdjęciu": "Da natpis bude čitljiv na svijetloj fotografiji",
+  "Słowo po słowie": "Riječ po riječ",
+  "Wiersz po wierszu": "Redak po redak",
+  "W tym czasie pojawia się cały tekst (nie wydłuża napisu)": "U tom se vremenu pojavi cijeli tekst (ne produljuje trajanje natpisa)",
+  "Czas tego napisu; puste = czas kiosku": "Vrijeme ovog natpisa; prazno = vrijeme kioska",
+  "Usuń napis": "Ukloni natpis",
+  "+ Dodaj napis": "+ Dodaj natpis",
+  "Kolejny napis na tym samym obrazie": "Još jedan natpis na istoj slici"
 }

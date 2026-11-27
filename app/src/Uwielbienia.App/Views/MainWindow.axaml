@@ -435,9 +435,54 @@
                                   <Image Source="{Binding Thumbnail^}" Stretch="Uniform" />
                                 </Border>
                                 <StackPanel Grid.Column="2" Spacing="6">
-                                  <TextBox Text="{Binding Title, UpdateSourceTrigger=LostFocus}" PlaceholderText="{l:T 'Tytuł (opcjonalnie)'}" />
-                                  <TextBox Text="{Binding Text, UpdateSourceTrigger=LostFocus}" PlaceholderText="{Binding TextHint}"
-                                           AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                                  <!-- wygląd napisu: obok obrazu czy na nim, gdzie stoi, jak duży i jak się pojawia -->
+                                  <WrapPanel ItemSpacing="6" LineSpacing="6">
+                                    <TextBlock Classes="caption" Text="{l:T 'Napis'}" VerticalAlignment="Center" Margin="0,0,2,0" />
+                                    <ToggleButton Classes="chip" Content="{l:T 'Na obrazie'}" IsChecked="{Binding IsOver}"
+                                                  IsVisible="{Binding HasImage}" ToolTip.Tip="{l:T 'Obraz na cały ekran, napis na nim'}" />
+                                    <ToggleButton Classes="chip" Content="{l:T 'Góra'}" IsChecked="{Binding IsTop}" IsVisible="{Binding ShowPosition}" />
+                                    <ToggleButton Classes="chip" Content="{l:T 'Środek'}" IsChecked="{Binding IsMiddle}" IsVisible="{Binding ShowPosition}" />
+                                    <ToggleButton Classes="chip" Content="{l:T 'Dół'}" IsChecked="{Binding IsBottom}" IsVisible="{Binding ShowPosition}" />
+                                    <NumericUpDown Value="{Binding Scale}" Minimum="50" Maximum="300" Increment="10" FormatString="0'%'"
+                                                   Width="132" ToolTip.Tip="{l:T 'Wielkość liter'}" />
+                                    <CheckBox Content="{l:T 'Przyciemnienie'}" IsChecked="{Binding Scrim}" IsVisible="{Binding IsOver}"
+                                              ToolTip.Tip="{l:T 'Żeby napis był czytelny na jasnym zdjęciu'}" />
+                                  </WrapPanel>
+                                  <WrapPanel ItemSpacing="6" LineSpacing="6">
+                                    <TextBlock Classes="caption" Text="{l:T 'Tekst'}" VerticalAlignment="Center" Margin="0,0,2,0" />
+                                    <ToggleButton Classes="chip" Content="{l:T 'Słowo po słowie'}" IsChecked="{Binding IsWord}" />
+                                    <ToggleButton Classes="chip" Content="{l:T 'Wiersz po wierszu'}" IsChecked="{Binding IsLine}" />
+                                    <NumericUpDown Value="{Binding RevealSeconds}" Minimum="0" Maximum="20" Increment="0.5" FormatString="0.0' s'"
+                                                   Width="132" IsVisible="{Binding HasReveal}"
+                                                   ToolTip.Tip="{l:T 'W tym czasie pojawia się cały tekst (nie wydłuża napisu)'}" />
+                                  </WrapPanel>
+                                  <!-- napisy: jeden jak dotąd, kilka = zmieniają się same na tle tego samego obrazu -->
+                                  <ItemsControl ItemsSource="{Binding Captions}">
+                                    <ItemsControl.ItemTemplate>
+                                      <DataTemplate x:DataType="vm:KioskCaptionEditViewModel">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,6">
+                                          <StackPanel Spacing="4">
+                                            <TextBox Text="{Binding Title, UpdateSourceTrigger=LostFocus}" PlaceholderText="{l:T 'Tytuł (opcjonalnie)'}" />
+                                            <TextBox Text="{Binding Text, UpdateSourceTrigger=LostFocus}"
+                                                     PlaceholderText="{Binding $parent[ItemsControl].((vm:KioskEntryViewModel)DataContext).TextHint}"
+                                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                                          </StackPanel>
+                                          <NumericUpDown Grid.Column="1" Value="{Binding Seconds}" Minimum="2" Maximum="600" Increment="1"
+                                                         FormatString="0' s'" Width="112" Margin="6,0,0,0" VerticalAlignment="Top"
+                                                         IsVisible="{Binding ShowSeconds}"
+                                                         ToolTip.Tip="{l:T 'Czas tego napisu; puste = czas kiosku'}" />
+                                          <Button Grid.Column="2" Classes="quiet removeItem" Content="✕" VerticalAlignment="Top" Margin="2,0,0,0"
+                                                  ToolTip.Tip="{l:T 'Usuń napis'}"
+                                                  IsVisible="{Binding $parent[ItemsControl].((vm:KioskEntryViewModel)DataContext).HasManyCaptions}"
+                                                  Command="{Binding $parent[ItemsControl].((vm:KioskEntryViewModel)DataContext).RemoveCaptionCommand}"
+                                                  CommandParameter="{Binding}" />
+                                        </Grid>
+                                      </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                  </ItemsControl>
+                                  <Button Classes="quiet" HorizontalAlignment="Left" Content="{l:T '+ Dodaj napis'}"
+                                          Command="{Binding AddCaptionCommand}"
+                                          ToolTip.Tip="{l:T 'Kolejny napis na tym samym obrazie'}" />
                                   <TextBlock Classes="caption" Classes.failed="{Binding IsFailed}" Text="{Binding Note}" TextWrapping="Wrap"
                                              IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
                                 </StackPanel>

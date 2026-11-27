@@ -52,7 +52,7 @@ plan = plan.Insert(5, new VideoPlanItem(Guid.NewGuid(), videoArg ?? Path.Combine
 plan = plan.Insert(6, appArg is null
     ? new AppWindowPlanItem(Guid.NewGuid(), "Ekran bezprzewodowy", "nieuruchomiony-program", null)
     : new AppWindowPlanItem(Guid.NewGuid(), appArg.Length > 1 ? appArg[1] : appArg[0], appArg[0], appArg.Length > 1 ? appArg[1] : null));
-// Kiosk: obraz poziomy z napisem (pod spodem), pionowy z napisem (z prawej), sam napis i sam obraz.
+// Kiosk: obraz poziomy z napisem (pod spodem), pionowy z napisem (z prawej), sam napis, sam obraz i napisy na obrazie.
 var kioskImages = services.GetRequiredService<ISlideshowLibrary>().ImportEachAsync(
     [DrawSlide(2, Path.Combine(root, "kiosk-poziomy.png")), DrawPortrait(Path.Combine(root, "kiosk-pionowy.png")), slideFiles[2]])
     .GetAwaiter().GetResult();
@@ -67,6 +67,12 @@ var kioskItem = KioskPlanItem.Create("Ogłoszenia przed Mszą") with
         new KioskEntry(kioskImages[1].Folder, "Schola dziecięca", "Zapraszamy dzieci w każdą sobotę o 10:00 do salki pod kościołem."),
         new KioskEntry(null, "Witamy na wieczorze uwielbienia", "Telefony wyciszamy — dziękujemy!"),
         new KioskEntry(kioskImages[2].Folder),
+        // kilka napisów na jednym zdjęciu, napis na obrazie (na środku), tekst słowo po słowie
+        new KioskEntry(kioskImages[0].Folder, Captions:
+        [
+            new KioskCaption(Text: "“Poczułem, jak moje ciało zaczęło drżeć, kiedy zaczęto oddawać cześć Najświętszemu Sakramentowi", Seconds: 5),
+            new KioskCaption("Andrzej", "Ufać Panu,\nnieważne co się teraz dzieje"),
+        ], Style: new KioskCaptionStyle(KioskCaptionPlacement.Over, KioskCaptionPosition.Middle, Reveal: KioskTextReveal.Word)),
     ],
 };
 plan = plan.Insert(6, kioskItem);
@@ -231,7 +237,7 @@ Save(projection, "projekcja-prezentacja", settle: true);
     main.Plan.Selected = main.Plan.Items.First(i => i.IsKiosk);
     control.Show(active.Playlist.First(i => i.PlanItemId == kioskItem.Id));
     Save(window, "kiosk", settle: true);
-    foreach (var (index, name) in new[] { (0, "pod"), (1, "obok"), (2, "napis"), (3, "obraz") })
+    foreach (var (index, name) in new[] { (0, "pod"), (1, "obok"), (2, "napis"), (3, "obraz"), (4, "na-obrazie"), (5, "na-obrazie-2") })
     {
         rotation.GoTo(index);
         Save(projection, "projekcja-kiosk-" + name, settle: true);

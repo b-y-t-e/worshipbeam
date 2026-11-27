@@ -157,5 +157,20 @@
   "Wyłącz projekcję (F5)": "Kivetítés kikapcsolása (F5)",
   "Esc wraca do okna operatora, F5 wyłącza projekcję": "Esc: vissza a kezelőablakba, F5: kivetítés kikapcsolása",
   "Pełny ekran na drugim monitorze (F5)": "Teljes képernyő a második monitoron (F5)",
-  "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)": "Nincs második képernyő — a kivetítés eltakarja ezt az ablakot, Esc: vissza (F5)"
+  "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)": "Nincs második képernyő — a kivetítés eltakarja ezt az ablakot, Esc: vissza (F5)",
+  "Na obrazie": "A képen",
+  "Obraz na cały ekran, napis na nim": "Teljes képernyős kép, rajta a felirat",
+  "Góra": "Fent",
+  "Środek": "Közép",
+  "Dół": "Lent",
+  "Wielkość liter": "Betűméret",
+  "Przyciemnienie": "Sötétítés",
+  "Żeby napis był czytelny na jasnym zdjęciu": "Hogy a felirat világos fotón is olvasható legyen",
+  "Słowo po słowie": "Szóról szóra",
+  "Wiersz po wierszu": "Sorról sorra",
+  "W tym czasie pojawia się cały tekst (nie wydłuża napisu)": "Ennyi idő alatt jelenik meg a teljes szöveg (nem hosszabbítja a feliratot)",
+  "Czas tego napisu; puste = czas kiosku": "Ennek a feliratnak az ideje; üresen = a kioszk ideje",
+  "Usuń napis": "Felirat törlése",
+  "+ Dodaj napis": "+ Felirat hozzáadása",
+  "Kolejny napis na tym samym obrazie": "Újabb felirat ugyanazon a képen"
 }

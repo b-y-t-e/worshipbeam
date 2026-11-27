@@ -84,10 +84,11 @@ public sealed class KioskRotation : IDisposable
         {
             // Zmieniona treść tego samego kiosku (edycja, gotowe slajdy prezentacji): ten sam element, jeśli jest.
             var frame = Frame;
-            restart = slide.Interval != Slide?.Interval;
+            var before = Slide?.Duration(Index);
             Slide = slide;
             var same = frame is null ? -1 : slide.Frames.ToList().IndexOf(frame);
             Index = same >= 0 ? same : Math.Min(Index, slide.Frames.Count - 1);
+            restart = slide.Duration(Index) != before;
             changed = true;
         }
 
@@ -113,7 +114,7 @@ public sealed class KioskRotation : IDisposable
         // odrzucone i nic nie zaplanowałoby następnego: kiosk stanąłby na stałe)
         Volatile.Write(ref _scheduled, generation);
         if (IsRunning && Slide is { } slide)
-            _timer.Change(slide.Interval, Timeout.InfiniteTimeSpan);
+            _timer.Change(slide.Duration(Index), Timeout.InfiniteTimeSpan);
         else
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
     }

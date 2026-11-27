@@ -157,5 +157,20 @@
   "Wyłącz projekcję (F5)": "Stop projection (F5)",
   "Esc wraca do okna operatora, F5 wyłącza projekcję": "Esc returns to the operator window, F5 stops projection",
   "Pełny ekran na drugim monitorze (F5)": "Full screen on the second monitor (F5)",
-  "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)": "No second screen — projection will cover this window, Esc returns (F5)"
+  "Brak drugiego ekranu — projekcja zakryje to okno, Esc wraca (F5)": "No second screen — projection will cover this window, Esc returns (F5)",
+  "Na obrazie": "On the image",
+  "Obraz na cały ekran, napis na nim": "Full-screen image with the caption on it",
+  "Góra": "Top",
+  "Środek": "Middle",
+  "Dół": "Bottom",
+  "Wielkość liter": "Text size",
+  "Przyciemnienie": "Dimming",
+  "Żeby napis był czytelny na jasnym zdjęciu": "Keeps the caption readable on a bright photo",
+  "Słowo po słowie": "Word by word",
+  "Wiersz po wierszu": "Line by line",
+  "W tym czasie pojawia się cały tekst (nie wydłuża napisu)": "The whole text appears within this time (it does not make the caption last longer)",
+  "Czas tego napisu; puste = czas kiosku": "Time for this caption; empty = the kiosk time",
+  "Usuń napis": "Remove caption",
+  "+ Dodaj napis": "+ Add caption",
+  "Kolejny napis na tym samym obrazie": "Another caption on the same image"
 }

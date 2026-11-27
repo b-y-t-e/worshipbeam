@@ -39,18 +39,24 @@ public sealed class KioskPlanItemType : IPlanItemType
 
     public static int Seconds(KioskPlanItem kiosk) => Math.Clamp(kiosk.Seconds, KioskPlanItem.MinSeconds, KioskPlanItem.MaxSeconds);
 
-    /// <summary>Elementy w kolejności pokazu; prezentacja bez gotowych slajdów jeszcze nic nie wnosi.</summary>
+    /// <summary>
+    /// Elementy w kolejności pokazu; prezentacja bez gotowych slajdów jeszcze nic nie wnosi. Element z kilkoma napisami
+    /// daje tyle klatek, ile ma napisów — ten sam obraz z kolejnymi napisami, a po ostatnim następny element.
+    /// </summary>
     public static List<KioskFrame> Frames(KioskPlanItem kiosk, Func<string, SlideshowState> load)
     {
         var frames = new List<KioskFrame>();
         foreach (var entry in kiosk.Entries)
         {
-            var title = Clean(entry.Title);
-            var text = Clean(entry.Text);
+            var style = entry.Style;
+            var texts = entry.Texts;
             if (entry.Folder is { } folder)
-                frames.AddRange(load(folder).Slides.Select(image => new KioskFrame(image, title, text)));
-            else if (entry.HasText)
-                frames.Add(new KioskFrame(null, title, text));
+                foreach (var image in load(folder).Slides)
+                    frames.AddRange(texts.Count > 0
+                        ? texts.Select(c => new KioskFrame(image, Clean(c.Title), Clean(c.Text), style, c.Seconds))
+                        : [new KioskFrame(image, null, null, style)]);
+            else
+                frames.AddRange(texts.Select(c => new KioskFrame(null, Clean(c.Title), Clean(c.Text), style, c.Seconds)));
         }
         return frames;
     }

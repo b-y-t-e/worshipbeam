@@ -30,3 +30,9 @@ __pycache__/
 # Wydania i dane logowania
 release/
 .env
+
+# mTiles workspace state
+.claude/skills/mtiles-subtasks/
+
+# mTiles workspace state
+.claude/skills/mtiles-workflows/

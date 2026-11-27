@@ -265,11 +265,133 @@ public sealed record KioskPlanItem(
     public override PlanItem WithNewId() => this with { Id = Guid.NewGuid() };
 }
 
-/// <summary>Element kiosku: obraz (albo wszystkie slajdy prezentacji), napis, albo obraz z napisem.</summary>
+/// <summary>Element kiosku: obraz (albo wszystkie slajdy prezentacji), napis, albo obraz z jednym lub kilkoma napisami.</summary>
 /// <param name="Folder">Folder obrazu lub prezentacji w katalogu aplikacji (<see cref="Slideshows.ISlideshowLibrary"/>); <c>null</c> = sam napis.</param>
-/// <param name="Title">Tytuł napisu (opcjonalny).</param>
-/// <param name="Text">Treść napisu; wiersze rozdziela znak nowej linii.</param>
-public sealed record KioskEntry(string? Folder = null, string? Title = null, string? Text = null)
+/// <param name="Title">Tytuł pierwszego napisu (opcjonalny); kilka napisów zapisuje <paramref name="Captions"/>.</param>
+/// <param name="Text">Treść pierwszego napisu; wiersze rozdziela znak nowej linii.</param>
+/// <param name="Captions">
+/// Napisy tego elementu, gdy jest ich kilka — zmieniają się same na tle tego samego obrazu, a po ostatnim kiosk
+/// przechodzi do następnego elementu. <c>null</c> (zwykły przypadek, też wszystkie starsze plany) = jeden napis
+/// z <paramref name="Title"/> i <paramref name="Text"/>.
+/// </param>
+/// <param name="Style">Wygląd napisu (położenie, wielkość, pokazywanie tekstu); <c>null</c> = domyślny.</param>
+public sealed record KioskEntry(
+    string? Folder = null,
+    string? Title = null,
+    string? Text = null,
+    IReadOnlyList<KioskCaption>? Captions = null,
+    KioskCaptionStyle? Style = null)
 {
+    public bool HasText => Texts.Count > 0;
+
+    /// <summary>Napisy w kolejności pokazu — z <see cref="Captions"/> albo jeden z <see cref="Title"/> i <see cref="Text"/>.</summary>
+    [JsonIgnore]
+    public IReadOnlyList<KioskCaption> Texts => Captions is { Count: > 0 } captions
+        ? captions.Where(c => c.HasText).ToList()
+        : new KioskCaption(Title, Text) is { HasText: true } single ? [single] : [];
+
+    /// <summary>Wygląd napisu z rozstrzygniętym położeniem — takim, jakie element naprawdę ma na ekranie.</summary>
+    [JsonIgnore]
+    public KioskCaptionStyle ChosenStyle => (Style ?? KioskCaptionStyle.Default) with { Position = Position };
+
+    /// <summary>Gdzie stoi napis tego elementu (<see cref="KioskCaptionStyle.PositionOf"/>).</summary>
+    [JsonIgnore]
+    public KioskCaptionPosition Position => KioskCaptionStyle.PositionOf(Style, Folder is not null);
+
+    /// <summary>Napisy w jednym polu: jeden zapisuje się jak dawniej (<see cref="Title"/>, <see cref="Text"/>).</summary>
+    public KioskEntry WithTexts(IReadOnlyList<KioskCaption> texts)
+    {
+        var kept = texts.Where(c => c.HasText).ToList();
+        return kept switch
+        {
+            [] => this with { Title = null, Text = null, Captions = null },
+            [{ Seconds: null } one] => this with { Title = one.Title, Text = one.Text, Captions = null },
+            _ => this with { Title = null, Text = null, Captions = kept },
+        };
+    }
+
+    // Porównanie treścią napisów i wyglądem (rekord porównałby odwołanie do listy) — inaczej każdy zapis kiosku
+    // wyglądałby na zmianę. Hasz liczy się z tego samego, co porównanie.
+    public bool Equals(KioskEntry? other) =>
+        other is not null && Folder == other.Folder && ChosenStyle == other.ChosenStyle && Texts.SequenceEqual(other.Texts);
+
+    public override int GetHashCode() => HashCode.Combine(Folder, ChosenStyle, Texts.Count);
+}
+
+/// <summary>Jeden napis elementu kiosku.</summary>
+/// <param name="Title">Tytuł (opcjonalny).</param>
+/// <param name="Text">Treść; wiersze rozdziela znak nowej linii.</param>
+/// <param name="Seconds">Jak długo ten napis jest widoczny; <c>null</c> = czas kiosku (<see cref="KioskPlanItem.Seconds"/>).</param>
+public sealed record KioskCaption(string? Title = null, string? Text = null, int? Seconds = null)
+{
+    [JsonIgnore]
     public bool HasText => !string.IsNullOrWhiteSpace(Title) || !string.IsNullOrWhiteSpace(Text);
+}
+
+/// <summary>Gdzie i jak pokazuje się napis elementu kiosku.</summary>
+/// <param name="Placement">Napis obok obrazu albo na nim.</param>
+/// <param name="Position">Napis u góry, na środku albo u dołu (przy napisie na obrazie i samym napisie).</param>
+/// <param name="Scale">Wielkość liter w procentach zwykłej (50–300).</param>
+/// <param name="Scrim">Przyciemnienie pod napisem na obrazie — bez niego napis ginie na jasnym zdjęciu.</param>
+/// <param name="Reveal">Cały napis od razu, słowo po słowie albo wiersz po wierszu.</param>
+/// <param name="RevealSeconds">W ile sekund pojawiają się wszystkie słowa (nie wydłuża napisu).</param>
+public sealed record KioskCaptionStyle(
+    KioskCaptionPlacement Placement = KioskCaptionPlacement.Beside,
+    KioskCaptionPosition Position = KioskCaptionPosition.Bottom,
+    int Scale = 100,
+    bool Scrim = true,
+    KioskTextReveal Reveal = KioskTextReveal.Instant,
+    double RevealSeconds = 2)
+{
+    public const int MinScale = 50, MaxScale = 300;
+
+    public static KioskCaptionStyle Default { get; } = new();
+
+    /// <summary>
+    /// Gdzie stoi napis: wybór operatora, a bez niego (element bez własnego wyglądu, też z planu sprzed tego ustawienia)
+    /// środek ekranu dla samego napisu — jak dotąd — i dół przy zdjęciu.
+    /// </summary>
+    public static KioskCaptionPosition PositionOf(KioskCaptionStyle? style, bool withImage) =>
+        style?.Position ?? (withImage ? Default.Position : KioskCaptionPosition.Middle);
+
+    /// <summary>Mnożnik wielkości liter (1 = zwykła).</summary>
+    [JsonIgnore]
+    public double Zoom => Math.Clamp(Scale, MinScale, MaxScale) / 100.0;
+
+    /// <summary>Czas pojawiania się słów; zero = cały napis od razu.</summary>
+    [JsonIgnore]
+    public TimeSpan Reveals => Reveal == KioskTextReveal.Instant
+        ? TimeSpan.Zero
+        : TimeSpan.FromSeconds(Math.Clamp(RevealSeconds, 0, 20));
+}
+
+/// <summary>Napis obok obrazu (jak dotąd) albo na nim.</summary>
+public enum KioskCaptionPlacement
+{
+    /// <summary>Obraz w ramce, napis z prawej albo pod spodem — wg proporcji obrazu.</summary>
+    Beside,
+
+    /// <summary>Obraz na cały ekran (z powolnym zoomem), napis na nim.</summary>
+    Over,
+}
+
+/// <summary>Gdzie na ekranie stoi napis.</summary>
+public enum KioskCaptionPosition
+{
+    Top,
+    Middle,
+    Bottom,
+}
+
+/// <summary>Jak pojawia się tekst napisu.</summary>
+public enum KioskTextReveal
+{
+    /// <summary>Cały napis od razu.</summary>
+    Instant,
+
+    /// <summary>Słowo po słowie, wszystkie w zadanym czasie.</summary>
+    Word,
+
+    /// <summary>Wiersz po wierszu.</summary>
+    Line,
 }

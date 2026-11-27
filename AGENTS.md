@@ -287,16 +287,33 @@ uruchamianie, budowanie i wydanie: `app/README.md`.
   z jednego pliku), Linux — VLC z systemu (bez niego czytelny komunikat przy filmie). Próba z
   prawdziwym plikiem: `dotnet run --project app/tools/Uwielbienia.Screenshots -- <katalog> --video <plik>`.
 - **Kiosk** (`KioskPlanItem`: tytuł, `Seconds` — domyślnie 8, i `KioskEntry`: folder obrazu lub prezentacji
-  i / albo napis z opcjonalnym tytułem). Obrazy i prezentacje kopiuje `SlideshowLibrary` (jak „Obraz” / „Prezentacja”;
+  i / albo napisy — `KioskCaption` (tytuł, tekst, własny `Seconds`; `null` = czas kiosku) — oraz `KioskCaptionStyle`).
+  Obrazy i prezentacje kopiuje `SlideshowLibrary` (jak „Obraz” / „Prezentacja”;
   każdy slajd prezentacji to osobny element). Dla planu, klawiatury i telefonu to **jeden slajd** `KioskSlide` (lista
   `KioskFrame` + odstęp; porównanie treści, nie list) — „Dalej” idzie do następnej pozycji planu. Elementy zmienia
-  `KioskRotation` (Core, jedna dla rzutnika, „Na ekranie” i telefonu): co `Interval`, w kółko; czarny ekran = stoi;
+  `KioskRotation` (Core, jedna dla rzutnika, „Na ekranie” i telefonu): co `KioskSlide.Duration(i)` (czas napisu albo
+  `Interval`), w kółko; czarny ekran = stoi;
   powrót do kiosku = od elementu, na którym skończył (osobno dla każdej pozycji); edycja na żywo zostawia ten sam
   element. Rzutnik: `ProjectedKiosk` (strona stała — równa każdej innej stronie tego kiosku, także po edycji na żywo) z wewnętrznym
   przejściem `KioskFramePage` (`KioskPlayback.Transition`; nowa strona tylko dla innego elementu); układ wg
   `KioskFrame.LayoutFor` — napis tam, gdzie obraz zostaje największy (pionowy do ok. 3:2 → napis z prawej, szerszy →
-  pod spodem; sam obraz — cały ekran, sam napis — jak tekst). Kolumna „Pieśń” (`KioskViewModel`) edytuje kiosk na
-  miejscu (nazwa, „Zmiana co … s”, elementy z przeciąganiem, „Obraz / Napis / Prezentacja”), każda zmiana od razu w planie.
+  pod spodem; sam obraz — cały ekran, sam napis — jak tekst).
+  **Kilka napisów na jednym obrazie** (`KioskEntry.Captions`, zapis `WithTexts`: jeden napis bez własnego czasu zapisuje
+  się jak dawniej — `Title`/`Text`, więc stare plany się nie zmieniają): każdy napis to osobna klatka tego samego obrazu,
+  a po ostatnim kiosk idzie do następnego elementu. Zdjęcie wtedy **zostaje na ekranie** — `KioskFramePage.CanShow`
+  / `Show` zmienia w stronie sam `Caption` (przenika go `CrossFade`), więc powolny zoom leci dalej przez wszystkie napisy
+  (`KioskSlide.RunDuration`).
+  **Wygląd napisu** (`KioskCaptionStyle`, per element; `null` = domyślny): `Placement` — `Beside` (jak dotąd) albo `Over`
+  (zdjęcie na cały ekran, napis na nim → `KioskLayout.TextOver`), `Position` — `Top` / `Middle` / `Bottom` (domyślnie dół;
+  dotyczy napisu na obrazie i samego napisu), `Scale` — wielkość liter w procentach, `Scrim` — przyciemnienie pod napisem
+  (gradient od krawędzi, przy napisie na środku winieta; bez niego napis ginie na jasnym zdjęciu), `Reveal` + `RevealSeconds` —
+  tekst od razu, **słowo po słowie** albo wiersz po wierszu, wszystkie słowa w zadanym czasie (nie wydłuża napisu).
+  Pokazuje je `Views/RevealText` (każde słowo osobnym `TextBlock` z animacją `Opacity` i własnym opóźnieniem — Avalonia nie
+  animuje fragmentów jednego bloku tekstu; kontrolka sama zawija i wyśrodkowuje wiersze).
+  Kolumna „Pieśń” (`KioskViewModel`) edytuje kiosk na
+  miejscu (nazwa, „Zmiana co … s”, elementy z przeciąganiem, „Obraz / Napis / Prezentacja”, przy elemencie: „Na obrazie”,
+  położenie, wielkość, „Przyciemnienie”, „Słowo po słowie / Wiersz po wierszu” z czasem i lista napisów z „+ Dodaj napis”),
+  każda zmiana od razu w planie.
   Telefon: `StateMessage.IsKiosk` + wiadomość `kiosk` (`KioskMessage`: `ItemId` — strona pokazuje element tylko przy stanie
   z tą samą pozycją, napis, podgląd JPEG 480 px z `IImagePreviews`); tryb „Ekran” w przeglądarce pokazuje ten podgląd i napis
   pod nim (nie układy rzutnika). Edycja dodana w starym modelu (np. kopiowanie skończone po zmianie zaznaczenia) trafia
