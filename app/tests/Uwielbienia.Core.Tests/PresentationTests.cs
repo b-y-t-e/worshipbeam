@@ -20,7 +20,25 @@ public sealed class PresentationTests : IDisposable
         _library = new SlideshowLibrary(Path.Combine(_temp, "prezentacje"), _exporter, _exporter, new ImmediateDispatcher());
     }
 
-    public void Dispose() => Directory.Delete(_temp, recursive: true);
+    /// <summary>
+    /// Wczytanie starego eksportu opisuje ruchome obrazki w tle (czyta plik prezentacji) — sprzątanie czeka, aż
+    /// ten odczyt puści plik, zamiast wyścigu o usunięcie folderu.
+    /// </summary>
+    public void Dispose()
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                Directory.Delete(_temp, recursive: true);
+                return;
+            }
+            catch (IOException) when (attempt < 50)
+            {
+                Thread.Sleep(50);
+            }
+        }
+    }
 
     private sealed class FakeExporter : ISlideExporter, ISlideExportVersion
     {
