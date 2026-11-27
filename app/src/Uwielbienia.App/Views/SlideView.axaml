@@ -39,10 +39,11 @@
           <DataTemplate DataType="vm:ProjectedAppWindow">
             <v:VideoSurface Frames="{Binding Frames}" />
           </DataTemplate>
-          <!-- Obraz na tle ekranu (czarnym albo jasnym — „Ekran: …”), jak tekst. -->
+          <!-- Obraz na tle ekranu (czarnym albo jasnym — „Ekran: …”), jak tekst; animowane GIF-y z prezentacji
+               rysują się na nim w swoim miejscu (slajd pozostaje zwykłym slajdem). -->
           <DataTemplate DataType="vm:ProjectedImage">
             <Panel Background="{Binding #Root.SlideBackground}">
-              <Image Source="{Binding Picture^}" Stretch="Uniform" />
+              <v:AnimatedSlideImage Source="{Binding Picture^}" Animations="{Binding Animations}" />
             </Panel>
           </DataTemplate>
           <!-- Kiosk: elementy zmieniają się same, z efektem przejścia wybranym w kiosku (cała strona zostaje ta sama).

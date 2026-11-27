@@ -1,4 +1,5 @@
 using Uwielbienia.Core.Localization;
+using Uwielbienia.Core.Slideshows;
 namespace Uwielbienia.Core.Presentation;
 
 /// <summary>
@@ -20,7 +21,22 @@ public record Slide(string SectionCode, string Label, IReadOnlyList<SlideLine> L
 /// <summary>Slajd prezentacji: obraz na cały ekran.</summary>
 /// <param name="ImageFile">Pełna ścieżka pliku obrazu.</param>
 /// <param name="Number">Numer slajdu od 1.</param>
-public sealed record ImageSlide(string ImageFile, int Number) : Slide($"S{Number}", Tr.F("Slajd {0}", Number), []);
+/// <param name="Animations">
+/// Animowane GIF-y wstawione na tym slajdzie (<see cref="Slideshows.SlideAnimations"/>); zwykle pusta lista. Rzutnik
+/// rysuje je na obrazie slajdu — slajd pozostaje zwykłym slajdem prezentacji.
+/// </param>
+public sealed record ImageSlide(string ImageFile, int Number, IReadOnlyList<SlideAnimation>? Animations = null)
+    : Slide($"S{Number}", Tr.F("Slajd {0}", Number), [])
+{
+    public IReadOnlyList<SlideAnimation> MovingPictures => Animations ?? [];
+
+    // Porównanie treścią (rekord porównałby odwołanie do listy): ten sam slajd po przebudowie planu zostaje na ekranie.
+    public bool Equals(ImageSlide? other) =>
+        other is not null && base.Equals(other) && ImageFile == other.ImageFile && Number == other.Number
+        && MovingPictures.SequenceEqual(other.MovingPictures);
+
+    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ImageFile, Number, MovingPictures.Count);
+}
 
 /// <summary>Film na cały ekran; odtwarza go <see cref="Videos.IVideoPlayer"/>, gdy slajd jest na ekranie.</summary>
 /// <param name="File">Pełna ścieżka pliku filmu.</param>

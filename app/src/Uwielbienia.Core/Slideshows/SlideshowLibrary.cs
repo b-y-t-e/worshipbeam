@@ -29,7 +29,17 @@ public interface ISlideExportVersion
 /// <summary>Stan slajdów prezentacji.</summary>
 /// <param name="Slides">Pliki obrazów w kolejności pokazu; puste, dopóki slajdy nie są gotowe.</param>
 /// <param name="Note">Dlaczego nie ma slajdów: przygotowywanie albo błąd; <c>null</c> = gotowe.</param>
-public sealed record SlideshowState(IReadOnlyList<string> Slides, string? Note = null, bool IsFailed = false);
+/// <param name="Animations">Ruchome obrazki slajdów (nazwa pliku slajdu → animowane GIF-y); zwykle pusty.</param>
+public sealed record SlideshowState(
+    IReadOnlyList<string> Slides,
+    string? Note = null,
+    bool IsFailed = false,
+    IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>? Animations = null)
+{
+    /// <summary>Ruchome obrazki tego slajdu; pusta lista = slajd jest nieruchomy (zwykły przypadek).</summary>
+    public IReadOnlyList<SlideAnimation> AnimationsOf(string slide) =>
+        Animations?.GetValueOrDefault(Path.GetFileName(slide)) ?? [];
+}
 
 /// <param name="Folder">Folder prezentacji w katalogu aplikacji (nazwa, nie pełna ścieżka).</param>
 public sealed record ImportedSlideshow(string Folder, string Title);
@@ -87,6 +97,8 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
     private readonly Dictionary<string, string> _errors = [];
     private readonly SemaphoreSlim _exportLock = new(1, 1);
     private readonly Dictionary<string, bool> _checkedSteps = [];
+    private readonly Dictionary<string, IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>> _animations = [];
+    private readonly HashSet<string> _describing = [];
 
     public event EventHandler<string>? Changed;
 
@@ -209,15 +221,15 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
 
         var slides = Path.Combine(directory, SlidesFolder);
         if (IsComplete(slides, presentation))
-            return Ready(ImagesIn(slides));
+            return Ready(ImagesIn(slides), Animations(folder, slides, presentation));
         // eksport sprzed kroków animacji: stare slajdy działają dalej — w trakcie nowego eksportu i gdy ten się nie uda
         var previous = File.Exists(Path.Combine(slides, CompleteMarker)) ? ImagesIn(slides) : null;
         if (_errors.TryGetValue(folder, out var error))
-            return previous is not null ? Ready(previous) : new SlideshowState([], error, IsFailed: true);
+            return previous is not null ? Ready(previous, Animations(folder, slides, presentation)) : new SlideshowState([], error, IsFailed: true);
         if (_preparing.TryGetValue(folder, out var progress))
-            return previous is not null ? Ready(previous) : new SlideshowState([], progress);
+            return previous is not null ? Ready(previous, Animations(folder, slides, presentation)) : new SlideshowState([], progress);
         if (!prepare)
-            return previous is not null ? Ready(previous) : new SlideshowState([], Tr.T(PreparingNote));
+            return previous is not null ? Ready(previous, Animations(folder, slides, presentation)) : new SlideshowState([], Tr.T(PreparingNote));
         _preparing[folder] = Tr.T(PreparingNote);
         _ = ExportAsync(folder, presentation, slides);
         // eksport mógł już coś zgłosić (albo skończyć) — zwracamy aktualny stan
@@ -254,8 +266,52 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
         return current;
     }
 
-    private static SlideshowState Ready(List<string> images) =>
-        images.Count > 0 ? new SlideshowState(images) : new SlideshowState([], Tr.T("Brak slajdów"), IsFailed: true);
+    private static SlideshowState Ready(List<string> images, IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>? animations = null) =>
+        images.Count > 0 ? new SlideshowState(images, Animations: animations) : new SlideshowState([], Tr.T("Brak slajdów"), IsFailed: true);
+
+    /// <summary>
+    /// Ruchome obrazki slajdów — raz odczytane zostają w pamięci, bo stan buduje się przy każdej zmianie planu.
+    /// Slajdy wyeksportowane przed tą możliwością nie mają jeszcze opisu: powstaje on w tle (przeglądanie prezentacji
+    /// nie może opóźnić pokazania slajdu), raz dla folderu, a gotowy opis zgłasza się jak każda zmiana slajdów.
+    /// </summary>
+    private IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>> Animations(string folder, string slides, string presentation)
+    {
+        if (_animations.TryGetValue(slides, out var known))
+            return known;
+        if (SlideAnimations.IsDescribed(slides))
+            return _animations[slides] = SlideAnimations.Load(slides);
+        // trwający eksport sam opisze nowe slajdy; pisanie do starego folderu mogłoby zablokować jego podmianę
+        if (!_preparing.ContainsKey(folder) && _describing.Add(slides))
+            _ = DescribeAsync(folder, slides, presentation);
+        return NoAnimations;
+    }
+
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>> NoAnimations =
+        new Dictionary<string, IReadOnlyList<SlideAnimation>>();
+
+    private async Task DescribeAsync(string folder, string slides, string presentation)
+    {
+        // Ten sam zamek co eksport: opis pisze do folderu slajdów, a eksport go podmienia. Bez tego opis zaczęty
+        // wcześniej nadpisałby na końcu opis zapisany przez eksport — ten jest właściwy, bo powstał z pliku,
+        // z którego naprawdę powstały slajdy.
+        await _exportLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (!SlideAnimations.IsDescribed(slides))
+                await Task.Run(() => SlideAnimations.Export(presentation, slides)).ConfigureAwait(false);
+        }
+        finally
+        {
+            _exportLock.Release();
+        }
+        OnUi(() =>
+        {
+            // nieudany zapis opisu (folder tylko do odczytu, zajęty plik) nie powtarza przeglądania przy każdym odczycie
+            _animations[slides] = SlideAnimations.Load(slides);
+            if (_animations[slides].Count > 0)
+                Changed?.Invoke(this, folder);
+        });
+    }
 
     /// <summary>Eksport do folderu tymczasowego, potem znacznik i przeniesienie — przerwany eksport nie udaje gotowego.</summary>
     private async Task ExportAsync(string folder, string presentation, string slides)
@@ -289,6 +345,8 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
         {
             _preparing.Remove(folder);
             _checkedSteps.Remove(slides);
+            _animations.Remove(slides);
+            _describing.Remove(slides);
             if (error is not null)
                 _errors[folder] = error;
             Changed?.Invoke(this, folder);

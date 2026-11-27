@@ -7,6 +7,7 @@ using Uwielbienia.App.Services;
 using Uwielbienia.App.Transitions;
 using Uwielbienia.Core.Kiosks;
 using Uwielbienia.Core.Presentation;
+using Uwielbienia.Core.Slideshows;
 using Uwielbienia.Core.Localization;
 
 namespace Uwielbienia.App.ViewModels;
@@ -218,10 +219,13 @@ public record ProjectedPage(Slide Slide, string? Title)
     public bool HasTitle => Title is not null;
 }
 
-/// <summary>Slajd prezentacji na rzutniku: obraz na cały ekran (wczytywany w tle).</summary>
+/// <summary>Slajd prezentacji na rzutniku: obraz na cały ekran (wczytywany w tle) z ruchomymi obrazkami, jeśli je ma.</summary>
 public sealed record ProjectedImage(ImageSlide Image) : ProjectedPage(Image, null), IWaitablePage
 {
     public Task<Bitmap?> Picture => SlideImages.LoadAsync(Image.ImageFile);
+
+    /// <summary>Animowane GIF-y z prezentacji; pusta lista = zwykły, nieruchomy slajd.</summary>
+    public IReadOnlyList<SlideAnimation> Animations => Image.MovingPictures;
 
     public Task Ready => Picture;
 }

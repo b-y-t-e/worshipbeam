@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Text;
 using System.Text.Json;
 using Uwielbienia.Core.Plans;
 using Uwielbienia.Core.Presentation;
@@ -145,6 +147,79 @@ public sealed class PresentationTests : IDisposable
 
         Assert.Single(_library.Load(imported.Folder).Slides);
         Assert.Equal("v2", File.ReadAllText(Path.Combine(slides, ".complete")));
+    }
+
+    /// <summary>Prezentacja z jednym slajdem i animowanym GIF-em na nim.</summary>
+    private string DeckWithMovingPicture(string name)
+    {
+        var file = Path.Combine(_temp, name);
+        using var zip = ZipFile.Open(file, ZipArchiveMode.Create);
+        Write(zip, "ppt/presentation.xml", """
+            <p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+                            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+              <p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst>
+              <p:sldSz cx="9144000" cy="5143500"/>
+            </p:presentation>
+            """);
+        Write(zip, "ppt/_rels/presentation.xml.rels", """
+            <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+              <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+            </Relationships>
+            """);
+        Write(zip, "ppt/slides/slide1.xml", """
+            <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+                   xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+                   xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+              <p:cSld><p:spTree><p:pic>
+                <p:blipFill><a:blip r:embed="rId1"/></p:blipFill>
+                <p:spPr><a:xfrm><a:off x="457200" y="2571750"/><a:ext cx="4572000" cy="2571750"/></a:xfrm></p:spPr>
+              </p:pic></p:spTree></p:cSld>
+            </p:sld>
+            """);
+        Write(zip, "ppt/slides/_rels/slide1.xml.rels", """
+            <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+              <Relationship Id="rId1" Type="image" Target="../media/kot.gif"/>
+            </Relationships>
+            """);
+        var gif = new List<byte>(Encoding.ASCII.GetBytes("GIF89a"));
+        for (var i = 0; i < 4; i++)
+            gif.AddRange([0x21, 0xF9, 0x04, 0x00, 0x0A, 0x00, 0x00, 0x00]);
+        gif.Add(0x3B);
+        var entry = zip.CreateEntry("ppt/media/kot.gif");
+        using var stream = entry.Open();
+        stream.Write([.. gif]);
+        return file;
+    }
+
+    private static void Write(ZipArchive zip, string name, string content)
+    {
+        var entry = zip.CreateEntry(name);
+        using var stream = entry.Open();
+        stream.Write(Encoding.UTF8.GetBytes(content));
+    }
+
+    [Fact]
+    public async Task Old_slides_get_their_moving_pictures_described_in_the_background()
+    {
+        // prezentacja dodana przed tą możliwością: slajdy są gotowe, ale nie ma jeszcze opisu ruchomych obrazków
+        var imported = await _library.ImportAsync([DeckWithMovingPicture("Ogloszenia.pptx")]);
+        var slides = Path.Combine(_temp, "prezentacje", imported.Folder, "slajdy");
+        Directory.CreateDirectory(slides);
+        File.WriteAllText(Path.Combine(slides, "slide001.png"), "");
+        File.WriteAllText(Path.Combine(slides, ".complete"), "v2");
+        var changed = false;
+        _library.Changed += (_, _) => changed = true;
+
+        // pierwszy odczyt nie czeka na przejrzenie prezentacji — slajdy pokazują się od razu, jeszcze nieruchome
+        Assert.Empty(_library.Load(imported.Folder).AnimationsOf("slide001.png"));
+        await WaitFor(() => changed);
+
+        var picture = Assert.Single(_library.Load(imported.Folder).AnimationsOf("slide001.png"));
+        Assert.True(File.Exists(picture.File));
+        // opis powstał raz — kolejne odczyty planu nie przeglądają prezentacji od nowa
+        var described = File.GetLastWriteTimeUtc(Path.Combine(slides, SlideAnimations.MapFile));
+        _library.Load(imported.Folder);
+        Assert.Equal(described, File.GetLastWriteTimeUtc(Path.Combine(slides, SlideAnimations.MapFile)));
     }
 
     [Fact]

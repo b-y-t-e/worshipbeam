@@ -231,6 +231,19 @@ uruchamianie, budowanie i wydanie: `app/README.md`.
   przebudowuje plan. Rodzaje: `SongPlanItemType` (pieśń i tekst; też `ISongPresenter` — pieśń
   spoza planu na ekran), `PresentationPlanItemType` (prezentacja), `VideoPlanItemType` (film), `KioskPlanItemType` (kiosk)
   i `AppWindowPlanItemType` (aplikacja).
+- **Ruchome obrazki w prezentacji.** Eksport zamienia slajd w nieruchomy PNG, więc animowany GIF zastygłby na pierwszej
+  klatce. `SlideAnimations` (Core) czyta plik prezentacji (OOXML), znajduje animowane GIF-y wstawione wprost na slajd
+  (ruch dostaje tylko obrazek, który na slajdzie wygląda tak samo jak sam plik: bez obrotu, odbicia, przycięcia,
+  stylu obrazu — zaokrąglenia, obramowania — i zmiany kolorów, niezakryty niczym, co leży nad nim, i niebędący
+  w grupie; ukryte, przezroczyste, bardzo duże i bardzo długie zostają nieruchome), wyciąga je obok slajdów
+  (`ruchNNN.gif`) i zapisuje `slajdy/animacje.json` — nazwa pliku
+  slajdu → `SlideAnimation` (plik i miejsce na slajdzie w ułamkach 0..1). Opis powstaje przy eksporcie (z tego pliku,
+  z którego powstały slajdy — także z kopii z krokami animacji, żeby numery się zgadzały), a dla slajdów sprzed tej
+  możliwości raz, przy pierwszym odczycie, bez ponownego eksportu; gdy liczba slajdów prezentacji nie zgadza się
+  z liczbą obrazów, opis jest pusty i slajdy zostają nieruchome. `ImageSlide.Animations` niesie je do rzutnika, gdzie
+  `Views/AnimatedSlideImage` rysuje obraz slajdu, a na nim klatki GIF-a (SkiaSharp `SKCodec`, w kółko, czasy klatek
+  z pliku) w jego miejscu. Slajd pozostaje zwykłym slajdem prezentacji: „Dalej”, przejścia, „Dopasuj obraz”, miniatury
+  u operatora, telefon i panel działają jak dotąd (podgląd na telefonie jest nieruchomy).
 - **Prezentacje** (`PresentationPlanItem`: folder + tytuł). `SlideshowLibrary` kopiuje plik
   PowerPoint (`.pptx .ppt .pps .ppsx .pptm .ppsm .odp`) albo obrazy (`.png .jpg .jpeg .bmp .webp`,
   kilka = jedna prezentacja; „Obraz” — `ImportEachAsync`: każdy obraz osobno, wszystko albo nic) do

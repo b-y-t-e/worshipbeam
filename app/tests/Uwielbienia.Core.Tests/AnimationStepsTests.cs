@@ -212,6 +212,7 @@ public sealed class AnimationStepsTests : IDisposable
 
         await new AnimationStepsExporter(new RejectingCopyExporter(_temp)).ExportAsync(source, outDir, 1920, new Progress<string>());
 
-        Assert.Equal(["oryginal.png", "slide001.png"], Directory.GetFiles(outDir).Select(Path.GetFileName).Order());
+        // obok slajdów powstaje jeszcze opis ruchomych obrazków (SlideAnimations) — tu pusty
+        Assert.Equal(["oryginal.png", "slide001.png"], Directory.GetFiles(outDir, "*.png").Select(Path.GetFileName).Order());
     }
 }

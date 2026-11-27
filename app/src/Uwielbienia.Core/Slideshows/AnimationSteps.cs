@@ -344,17 +344,21 @@ public sealed class AnimationStepsExporter(ISlideExporter inner) : ISlideExporte
             if (!await Task.Run(() => AnimationSteps.TryExpand(presentation, steps)).ConfigureAwait(false))
             {
                 await inner.ExportAsync(presentation, outDir, width, progress).ConfigureAwait(false);
+                await DescribeAnimationsAsync(presentation, outDir).ConfigureAwait(false);
                 return;
             }
             try
             {
                 await inner.ExportAsync(steps, outDir, width, progress).ConfigureAwait(false);
+                // ruchome obrazki opisuje ten plik, z którego powstały slajdy — numery slajdów muszą się zgadzać
+                await DescribeAnimationsAsync(steps, outDir).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // przerobiona kopia nie do otwarcia — zwykłe slajdy z oryginału
                 ClearDirectory(outDir);
                 await inner.ExportAsync(presentation, outDir, width, progress).ConfigureAwait(false);
+                await DescribeAnimationsAsync(presentation, outDir).ConfigureAwait(false);
             }
         }
         finally
@@ -369,6 +373,10 @@ public sealed class AnimationStepsExporter(ISlideExporter inner) : ISlideExporte
             }
         }
     }
+
+    /// <summary>Animowane GIF-y slajdów (<see cref="SlideAnimations"/>) — rzutnik pokazuje je na nieruchomym slajdzie.</summary>
+    private static Task DescribeAnimationsAsync(string presentation, string outDir) =>
+        Task.Run(() => SlideAnimations.Export(presentation, outDir));
 
     private static void ClearDirectory(string directory)
     {
