@@ -36,3 +36,9 @@ release/
 
 # mTiles workspace state
 .claude/skills/mtiles-workflows/
+
+# mTiles workspace state
+.agents/skills/mtiles-subtasks/
+
+# mTiles workspace state
+.agents/skills/mtiles-workflows/

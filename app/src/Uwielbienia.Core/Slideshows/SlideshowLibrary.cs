@@ -1,5 +1,6 @@
 using Uwielbienia.Core.Localization;
 using Uwielbienia.Core.Songs;
+using FileTransition = Uwielbienia.Core.Slideshows.Builds.FileTransition;
 
 namespace Uwielbienia.Core.Slideshows;
 
@@ -30,15 +31,25 @@ public interface ISlideExportVersion
 /// <param name="Slides">Pliki obrazów w kolejności pokazu; puste, dopóki slajdy nie są gotowe.</param>
 /// <param name="Note">Dlaczego nie ma slajdów: przygotowywanie albo błąd; <c>null</c> = gotowe.</param>
 /// <param name="Animations">Ruchome obrazki slajdów (nazwa pliku slajdu → animowane GIF-y); zwykle pusty.</param>
+/// <param name="Builds">Ruch elementów (nazwa pliku slajdu → stan budowy slajdu); zwykle pusty.</param>
+/// <param name="Transitions">Przejścia slajdów z pliku prezentacji (nazwa pliku slajdu → przejście do niego); zwykle pusty.</param>
 public sealed record SlideshowState(
     IReadOnlyList<string> Slides,
     string? Note = null,
     bool IsFailed = false,
-    IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>? Animations = null)
+    IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>? Animations = null,
+    IReadOnlyDictionary<string, SlideBuildFrame>? Builds = null,
+    IReadOnlyDictionary<string, FileTransition>? Transitions = null)
 {
+    /// <summary>Przejście z pliku prezentacji, które prowadzi do tego slajdu; <c>null</c> = jak w planie.</summary>
+    public FileTransition? TransitionTo(string slide) => Transitions?.GetValueOrDefault(Path.GetFileName(slide));
+
     /// <summary>Ruchome obrazki tego slajdu; pusta lista = slajd jest nieruchomy (zwykły przypadek).</summary>
     public IReadOnlyList<SlideAnimation> AnimationsOf(string slide) =>
         Animations?.GetValueOrDefault(Path.GetFileName(slide)) ?? [];
+
+    /// <summary>Stan budowy, którym jest ten slajd; <c>null</c> = zwykły slajd.</summary>
+    public SlideBuildFrame? BuildOf(string slide) => Builds?.GetValueOrDefault(Path.GetFileName(slide));
 }
 
 /// <param name="Folder">Folder prezentacji w katalogu aplikacji (nazwa, nie pełna ścieżka).</param>
@@ -99,6 +110,9 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
     private readonly Dictionary<string, bool> _checkedSteps = [];
     private readonly Dictionary<string, IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>> _animations = [];
     private readonly HashSet<string> _describing = [];
+    private readonly Dictionary<string, IReadOnlyDictionary<string, SlideBuildFrame>> _builds = [];
+    private readonly Dictionary<string, IReadOnlyDictionary<string, FileTransition>> _transitions = [];
+    private readonly HashSet<string> _describingTransitions = [];
 
     public event EventHandler<string>? Changed;
 
@@ -221,15 +235,15 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
 
         var slides = Path.Combine(directory, SlidesFolder);
         if (IsComplete(slides, presentation))
-            return Ready(ImagesIn(slides), Animations(folder, slides, presentation));
+            return Ready(ImagesIn(slides), Animations(folder, slides, presentation), Builds(slides), Transitions(folder, slides, presentation));
         // eksport sprzed kroków animacji: stare slajdy działają dalej — w trakcie nowego eksportu i gdy ten się nie uda
         var previous = File.Exists(Path.Combine(slides, CompleteMarker)) ? ImagesIn(slides) : null;
         if (_errors.TryGetValue(folder, out var error))
-            return previous is not null ? Ready(previous, Animations(folder, slides, presentation)) : new SlideshowState([], error, IsFailed: true);
+            return previous is not null ? Ready(previous, Animations(folder, slides, presentation), Builds(slides), Transitions(folder, slides, presentation)) : new SlideshowState([], error, IsFailed: true);
         if (_preparing.TryGetValue(folder, out var progress))
-            return previous is not null ? Ready(previous, Animations(folder, slides, presentation)) : new SlideshowState([], progress);
+            return previous is not null ? Ready(previous, Animations(folder, slides, presentation), Builds(slides), Transitions(folder, slides, presentation)) : new SlideshowState([], progress);
         if (!prepare)
-            return previous is not null ? Ready(previous, Animations(folder, slides, presentation)) : new SlideshowState([], Tr.T(PreparingNote));
+            return previous is not null ? Ready(previous, Animations(folder, slides, presentation), Builds(slides), Transitions(folder, slides, presentation)) : new SlideshowState([], Tr.T(PreparingNote));
         _preparing[folder] = Tr.T(PreparingNote);
         _ = ExportAsync(folder, presentation, slides);
         // eksport mógł już coś zgłosić (albo skończyć) — zwracamy aktualny stan
@@ -266,8 +280,60 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
         return current;
     }
 
-    private static SlideshowState Ready(List<string> images, IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>? animations = null) =>
-        images.Count > 0 ? new SlideshowState(images, Animations: animations) : new SlideshowState([], Tr.T("Brak slajdów"), IsFailed: true);
+    private static SlideshowState Ready(
+        List<string> images,
+        IReadOnlyDictionary<string, IReadOnlyList<SlideAnimation>>? animations = null,
+        IReadOnlyDictionary<string, SlideBuildFrame>? builds = null,
+        IReadOnlyDictionary<string, FileTransition>? transitions = null) =>
+        images.Count > 0
+            ? new SlideshowState(images, Animations: animations, Builds: builds, Transitions: transitions)
+            : new SlideshowState([], Tr.T("Brak slajdów"), IsFailed: true);
+
+    /// <summary>
+    /// Przejścia slajdów z pliku — odczytane raz. Slajdy wyeksportowane, zanim aplikacja je czytała, dostają opis w tle, raz
+    /// na uruchomienie (prezentacja bez przejść nie ma pliku opisu, więc przy następnym uruchomieniu sprawdza się ją znowu —
+    /// to tylko przeczytanie XML).
+    /// </summary>
+    private IReadOnlyDictionary<string, FileTransition> Transitions(string folder, string slides, string presentation)
+    {
+        if (_transitions.TryGetValue(slides, out var known))
+            return known;
+        if (File.Exists(Path.Combine(slides, SlideFileTransitions.MapFile)))
+            return _transitions[slides] = SlideFileTransitions.Load(slides);
+        if (!_preparing.ContainsKey(folder) && _describingTransitions.Add(slides))
+            _ = DescribeTransitionsAsync(folder, slides, presentation);
+        return NoTransitions;
+    }
+
+    private static readonly IReadOnlyDictionary<string, FileTransition> NoTransitions = new Dictionary<string, FileTransition>();
+
+    private async Task DescribeTransitionsAsync(string folder, string slides, string presentation)
+    {
+        await _exportLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (!File.Exists(Path.Combine(slides, SlideFileTransitions.MapFile)) && !File.Exists(Path.Combine(slides, SlideBuilds.MapFile)))
+                await Task.Run(() => SlideFileTransitions.Export(presentation, slides, AnimationSteps.ImagesPerSlide(presentation))).ConfigureAwait(false);
+        }
+        finally
+        {
+            _exportLock.Release();
+        }
+        OnUi(() =>
+        {
+            _transitions[slides] = SlideFileTransitions.Load(slides);
+            if (_transitions[slides].Count > 0)
+                Changed?.Invoke(this, folder);
+        });
+    }
+
+    /// <summary>Ruch elementów slajdów — odczytany raz (stan buduje się przy każdej zmianie planu); powstaje tylko przy eksporcie.</summary>
+    private IReadOnlyDictionary<string, SlideBuildFrame> Builds(string slides)
+    {
+        if (!_builds.TryGetValue(slides, out var known))
+            _builds[slides] = known = SlideBuilds.Load(slides);
+        return known;
+    }
 
     /// <summary>
     /// Ruchome obrazki slajdów — raz odczytane zostają w pamięci, bo stan buduje się przy każdej zmianie planu.
@@ -347,6 +413,9 @@ public sealed class SlideshowLibrary(string root, ISlideExporter exporter, ISlid
             _checkedSteps.Remove(slides);
             _animations.Remove(slides);
             _describing.Remove(slides);
+            _builds.Remove(slides);
+            _transitions.Remove(slides);
+            _describingTransitions.Remove(slides);
             if (error is not null)
                 _errors[folder] = error;
             Changed?.Invoke(this, folder);

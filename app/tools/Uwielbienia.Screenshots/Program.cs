@@ -16,7 +16,7 @@ using Uwielbienia.Core.Songs;
 
 // Renderuje okna aplikacji do PNG bez wyświetlania ich na ekranie — do przeglądu wyglądu.
 // Użycie: dotnet run --project tools/Uwielbienia.Screenshots -- <katalog_wyjściowy> [light] [--video <plik filmu>]
-//        [--app-window <proces>[|<tytuł okna>]]
+//        [--app-window <proces>[|<tytuł okna>]] | --build <prezentacja .pptx>
 // Z --video film gra naprawdę (VLC) — rzutnik i „Na ekranie” pokazują jego klatki. Z --app-window pozycja „Aplikacja”
 // pokazuje prawdziwe okno tego programu (np. ApplicationFrameHost|Ekran bezprzewodowy); bez — program nieuruchomiony.
 
@@ -33,6 +33,13 @@ AppBuilder.Configure<App>()
     .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
     .With(new FontManagerOptions { DefaultFamilyName = "avares://Uwielbienia.App/Assets/Fonts#Atkinson Hyperlegible Next" })
     .SetupWithoutStarting();
+
+// --build <prezentacja>: ruch elementów przez DeckCraft z prawdziwym plikiem — eksport, klatki ruchu i strona rzutnika
+if (Array.IndexOf(args, "--build") is var buildAt and >= 0 && buildAt + 1 < args.Length)
+{
+    BuildShots.Run(args[buildAt + 1], output);
+    return;
+}
 
 var root = Path.Combine(Path.GetTempPath(), "uwielbienia-shots-data-" + Guid.NewGuid().ToString("N"));
 var services = AppComposition.Build(new AppPaths(root));

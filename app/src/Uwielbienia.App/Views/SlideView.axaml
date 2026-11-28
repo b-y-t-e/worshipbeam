@@ -29,7 +29,8 @@
   <Viewbox Stretch="Uniform">
     <Border Width="1920" Height="1080" Background="{Binding #Root.SlideBackground}">
       <!-- Przejście strony: efekty pozycji planu albo „Slajdy: …” w jej obrębie, poza tym krótkie przenikanie (LiveViewModel.PageTransition). -->
-      <TransitioningContentControl Content="{Binding #Root.Page}" PageTransition="{Binding #Root.PageTransition}">
+      <TransitioningContentControl Content="{Binding #Root.Page}" PageTransition="{Binding #Root.PageTransition}"
+                                   TransitionCompleted="OnTransitionCompleted">
         <!-- Strona wybierana wg rodzaju: slajd prezentacji (obraz na cały ekran) i film przed stroną z tekstem. -->
         <TransitioningContentControl.DataTemplates>
           <DataTemplate DataType="vm:ProjectedVideo">
@@ -43,7 +44,8 @@
                rysują się na nim w swoim miejscu (slajd pozostaje zwykłym slajdem). -->
           <DataTemplate DataType="vm:ProjectedImage">
             <Panel Background="{Binding #Root.SlideBackground}">
-              <v:AnimatedSlideImage Source="{Binding Picture^}" Animations="{Binding Animations}" />
+              <v:AnimatedSlideImage Source="{Binding Picture^}" Animations="{Binding Animations}" Build="{Binding Build}"
+                                    TransitionedPage="{Binding #Root.TransitionedPage}" />
             </Panel>
           </DataTemplate>
           <!-- Kiosk: elementy zmieniają się same, z efektem przejścia wybranym w kiosku (cała strona zostaje ta sama).

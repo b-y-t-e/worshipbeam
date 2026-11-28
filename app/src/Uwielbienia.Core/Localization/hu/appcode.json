@@ -89,5 +89,9 @@
   "Tekst": "Szöveg",
   "Pieśń": "Ének",
   "Przejście": "Áttűnés",
-  "Slajdy": "Diák"
+  "Slajdy": "Diák",
+  "Slajdy z animacjami (DeckCraft)…": "Animált diák (DeckCraft)…",
+  "Slajdy z animacjami: warstwy…": "Animált diák: rétegek…",
+  "DeckCraft nie opisał wszystkich slajdów": "A DeckCraft nem írta le az összes diát",
+  "Nie udało się odczytać warstw slajdu": "Nem sikerült beolvasni a dia rétegeit"
 }

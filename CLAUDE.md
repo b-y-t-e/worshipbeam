@@ -15,6 +15,8 @@ Teksty/
 tools/
   import_spiewnik.py   # jednorazowy import z PDF (PyMuPDF) — NIE uruchamiać ponownie
   validate.py          # walidator formatu: python tools/validate.py
+  deckcraft_sync.py    # nowa wersja DeckCraft: różnica w animacjach i przejściach, odświeżenie wzorców testów
+  deckcraft-*-fixtures/ # programy w Rust: wyniki oryginalnego DeckCraft dla testów przeniesionego kodu
 run.py                 # kompiluje i uruchamia aplikację: python run.py [--release]
 build.py               # buduje aplikacje, instalator Velopack i stronę do release/
 deploy.py              # wydanie (wszystko lokalnie): strona na FTP + tag + GitHub Release przez API
@@ -244,6 +246,46 @@ uruchamianie, budowanie i wydanie: `app/README.md`.
   `Views/AnimatedSlideImage` rysuje obraz slajdu, a na nim klatki GIF-a (SkiaSharp `SKCodec`, w kółko, czasy klatek
   z pliku) w jego miejscu. Slajd pozostaje zwykłym slajdem prezentacji: „Dalej”, przejścia, „Dopasuj obraz”, miniatury
   u operatora, telefon i panel działają jak dotąd (podgląd na telefonie jest nieruchomy).
+- **Ruch elementów w prezentacji (animacje PowerPointa) — z DeckCraft.** Silnik animacji DeckCraft (Rust, MIT) jest
+  przeniesiony 1:1 do `Core/Slideshows/Builds/` (`Timeline`, `Effects`, `Easing`, `MotionPath`, `AnimState`, `AnimationModel`;
+  wersja i lista plików ↔ pliki Rust: `Builds/UPSTREAM.md`). Testy `DeckCraftAnimTests` porównują każdą wartość z wynikami
+  oryginalnego kodu (`tools/deckcraft-anim-fixtures` — program w Rust zapisuje je do `tests/.../Fixtures/DeckCraftAnim`).
+  **Nowa wersja DeckCraft:** `python tools/deckcraft_sync.py [--to REV]` pokazuje różnicę w `crates/anim` i nowe efekty
+  oraz przejścia; przenosimy tylko różnicę (test nowych efektów pada, póki ich nie ma w `AnimationEffects.Known`), w kolejności
+  z punktu „DeckCraft” w „Zasadach pracy”. Eksport (`DeckCraftBuildExporter`, App/Services; z `AnimationStepsExporter`, gdy
+  jest `deckcraft-cli` i prezentacja OOXML ma animacje — znacznik `ruch-1`): `slide.inspect` (animacje, ramki kształtów) dla
+  wszystkich slajdów, potem jedno wywołanie DeckCraft z listą poleceń (`--cmd-file`: `shape.visible` + `file.export …
+  transparentBackground`) rysuje **warstwy**: tło (wzór i układ, bez kształtów slajdu), grupy kolejnych nieruchomych kształtów,
+  każdy animowany kształt, jego akapity animowane osobno (DeckCraft ukrywa tylko całe kształty, więc akapity — w kopii pliku,
+  `BuildSources.WriteCopy`: tekst przezroczysty jak w krokach, a warstwa akapitu bez wypełnienia) i warianty koloru
+  (`shape.fill` — wyróżnienia zmieniające kolor; kolor pośredni = przenikanie do wariantu). Warstwy są przycinane do treści
+  (`slajdy/warstwy/`), a opis to `slajdy/budowa.json` (`SlideBuilds`: animacje tak, jak podał je DeckCraft — oś czasu powstaje
+  przy odczycie). **Każdy stan po kliknięciu to zwykły slajd** (`slideNNN.png`, składany z warstw tym samym kodem co rzutnik
+  — `SlideBuildRenderer`), więc plan, telefon, panel i miniatury działają bez zmian. Skalowanie i obrót warstw rastrowych
+  przybliżają render DeckCraft także w stanie końcowym, np. po trwałym powiększeniu kształtu z cienkim obrysem.
+  `ImageSlide.Build` (`SlideBuildFrame`) mówi, którym stanem jest slajd. Rzutnik i „Na ekranie” (`AnimatedSlideImage` z
+  `SlideBuildPlayback`) rysują warstwy (`SlideBuild.Poses` → przesunięcie, skala i obrót wokół środka kształtu, przycięcie,
+  krycie, kolor) i odgrywają ruch prowadzący do slajdu: „Dalej” z poprzedniego stanu tego samego slajdu (bez przejścia —
+  `CutTransition`), wejście na slajd z animacjami automatycznymi (po przejściu); powrót, skok i zdjęcie czarnego ekranu
+  pokazują stan od razu, efekty „do następnego kliknięcia” grają w kółko (`LiveViewModel.MotionTo`). GIF stojący na animowanym
+  kształcie porusza się z nim. Slajd, którego nie da się rozłożyć (animacja kształtu w grupie), albo błąd DeckCraft = cały plik
+  eksportuje się po staremu (kroki jako slajdy). Ograniczenia jak w rendererze DeckCraft: akapit tylko pojawia się, znika
+  i przesuwa (bez przycięcia i skali); animacja po słowie / literze — jak cały akapit; wyzwalacze (kliknięcie w kształt) nie
+  grają. Próba z prawdziwym plikiem: `dotnet run --project app/tools/Uwielbienia.Screenshots -- <katalog> --build <plik.pptx>`
+  (eksport, klatki ruchu każdego kroku, strona rzutnika i klatki kilku przejść z pliku).
+- **Przejścia slajdów z pliku prezentacji (PowerPoint: „Przejścia”) — z DeckCraft.** Geometria przejść opartych na teksturach
+  slajdów jest przeniesiona 1:1 (`Builds/Transition*.cs`, `TransitionCatalog`; opis i wersja: `Builds/UPSTREAM-TRANSITIONS.md`,
+  wzorce z Rusta: `tools/deckcraft-transition-fixtures`, testy `DeckCraftTransitionTests`): klatka to warstwy z teksturą
+  starego / nowego slajdu (albo czerni, bieli) na czworokątach z kryciem w narożnikach. `FileTransitions.Read` czyta
+  `<p:transition>` (z `mc:AlternateContent`, `spd`, `p14:dur`) jak czytnik DeckCraft; przy eksporcie (każdym, nie tylko z
+  DeckCraft) `SlideFileTransitions` zapisuje `slajdy/przejscia.json` (nazwa slajdu → przejście do niego; przejście ma tylko
+  pierwszy obraz slajdu — kroki animacji go nie mają; slajdy wyeksportowane wcześniej dostają opis w tle przy odczycie).
+  `ImageSlide.Transition` ma pierwszeństwo przed efektami planu między slajdami tej prezentacji (`LiveViewModel.FileTransitionTo`):
+  do przodu — przejście slajdu, na który się wchodzi; „Wstecz” o jeden — przejście opuszczanego slajdu od końca
+  (`ReverseFrame`, jak w DeckCraft / PowerPoincie). Rysuje je `FileTransitionPage` → `QuadTransitionView` (zrzuty stron jak
+  w `ShaderPageTransition`, każda warstwa jako siatka trójkątów — `TransitionMesh`, `SKCanvas.DrawVertices`). Tła i zawartości
+  osobno (przejścia „Zawartość dynamiczna”) nie mamy — całe slajdy, jak DeckCraft bez nich.
+  Morph i nierozpoznane efekty WorshipBeam odtwarza jako przenikanie całych slajdów.
 - **Prezentacje** (`PresentationPlanItem`: folder + tytuł). `SlideshowLibrary` kopiuje plik
   PowerPoint (`.pptx .ppt .pps .ppsx .pptm .ppsm .odp`) albo obrazy (`.png .jpg .jpeg .bmp .webp`,
   kilka = jedna prezentacja; „Obraz” — `ImportEachAsync`: każdy obraz osobno, wszystko albo nic) do
@@ -573,6 +615,11 @@ Plan, ekran, telefon i lista „Plany” obsługują nowy rodzaj bez zmian — w
 - Strona pilota `app/web/remote` mówi protokołem z `Uwielbienia.Link/RemoteProtocol.cs`, a panel `app/web/panel` — także
   z `PanelProtocol.cs` (typy w `web/panel/src/protocol.ts`); zmiana protokołu = zmiana po obu stronach. Strony pilota przy
   zmianach panelu nie ruszamy (nowe pola i wiadomości ignoruje).
+- **DeckCraft (animacje i przejścia prezentacji):** cel — docelowo 100% efektów animacji i przejść DeckCraft, wyglądających
+  tak samo jak w DeckCraft. Przy każdej pracy z tym kodem (różnica od ostatnio sprawdzonego commitu
+  `github.com/storytold/deckcraft`): `python tools/deckcraft_sync.py` (różnica), `--apply` (odtwarza wzorce z nowej wersji i uruchamia testy; gdy nie przejdą, przeniesiona wersja zostaje stara), przeniesienie różnicy do plików C#, aż testy przejdą, i `--apply` jeszcze raz (dopiero wtedy wersja się przestawia). Narzędzie samo zapisuje w
+  `app/src/Uwielbienia.Core/Slideshows/Builds/UPSTREAM.md` („Stan synchronizacji”) przeniesioną wersję, ostatnio sprawdzony
+  commit z datą i wynikiem oraz historię sprawdzeń — tam patrzymy, od kiedy sprawdzać zmiany; nie wpisujemy tego ręcznie.
 - Wydanie: `python deploy.py` (wersja w `version.txt`; buduje lokalnie, GitHub niczego nie buduje — tag i GitHub
   Release z plikami z `release/` przez API; `GITHUB_TOKEN` z Contents: write w `.env`; vpk w wersji `VelopackVersion`;
   nieudany release po tagu: `python deploy.py --github-only`).

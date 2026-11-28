@@ -1,0 +1,15 @@
+[package]
+name = "deckcraft-anim-fixtures"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Writes JSON fixtures from DeckCraft's animation timing (Rust) for the C# port in WorshipBeam"
+
+# Standalone: not part of any workspace above.
+[workspace]
+
+[dependencies]
+# Both revs must stay equal; tools/deckcraft_sync.py --apply updates them.
+deckcraft-anim = { git = "https://github.com/storytold/deckcraft", rev = "f67d07f132609482297a8272a8620e197262a51e" }
+deckcraft-model = { git = "https://github.com/storytold/deckcraft", rev = "f67d07f132609482297a8272a8620e197262a51e" }
+serde_json = { version = "1", features = ["float_roundtrip"] }

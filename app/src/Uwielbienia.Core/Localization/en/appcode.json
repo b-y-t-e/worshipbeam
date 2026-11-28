@@ -89,5 +89,9 @@
   "Tekst": "Text",
   "Pieśń": "Song",
   "Przejście": "Transition",
-  "Slajdy": "Slides"
+  "Slajdy": "Slides",
+  "Slajdy z animacjami (DeckCraft)…": "Slides with animations (DeckCraft)…",
+  "Slajdy z animacjami: warstwy…": "Slides with animations: layers…",
+  "DeckCraft nie opisał wszystkich slajdów": "DeckCraft did not describe all slides",
+  "Nie udało się odczytać warstw slajdu": "Could not read the slide layers"
 }

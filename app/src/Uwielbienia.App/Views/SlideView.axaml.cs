@@ -18,6 +18,9 @@ public partial class SlideView : UserControl
     public static readonly StyledProperty<IPageTransition?> PageTransitionProperty =
         AvaloniaProperty.Register<SlideView, IPageTransition?>(nameof(PageTransition), LiveViewModel.SlideChange);
 
+    public static readonly DirectProperty<SlideView, ProjectedImage?> TransitionedPageProperty =
+        AvaloniaProperty.RegisterDirect<SlideView, ProjectedImage?>(nameof(TransitionedPage), view => view.TransitionedPage);
+
     public static readonly StyledProperty<IBrush?> SlideBackgroundProperty =
         AvaloniaProperty.Register<SlideView, IBrush?>(nameof(SlideBackground), Brushes.Black);
 
@@ -34,6 +37,23 @@ public partial class SlideView : UserControl
         AvaloniaProperty.Register<SlideView, IBrush?>(nameof(SlideAccent), Brushes.Goldenrod);
 
     public SlideView() => InitializeComponent();
+
+    private ProjectedImage? _transitionedPage;
+    public ProjectedImage? TransitionedPage => _transitionedPage;
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        if (change.Property == PageProperty)
+            SetAndRaise(TransitionedPageProperty, ref _transitionedPage, null);
+        base.OnPropertyChanged(change);
+    }
+
+    private void OnTransitionCompleted(object? sender, TransitionCompletedEventArgs e)
+    {
+        // Zdarzenie przychodzi także wtedy, gdy strona jest wstawiana bez przejścia.
+        if (sender is TransitioningContentControl view && ReferenceEquals(e.To, view.Content))
+            SetAndRaise(TransitionedPageProperty, ref _transitionedPage, e.To as ProjectedImage);
+    }
 
     public ProjectedPage? Page
     {

@@ -149,7 +149,7 @@ public sealed class PresentationPlanItemType : IPlanItemType
         if (item is not PresentationPlanItem presentation)
             return null;
         var state = _library.Load(presentation.Folder);
-        var slides = state.Slides.Select((file, i) => (Slide)new ImageSlide(file, i + 1, state.AnimationsOf(file))).ToList();
+        var slides = state.Slides.Select((file, i) => (Slide)new ImageSlide(file, i + 1, state.AnimationsOf(file), state.BuildOf(file), state.TransitionTo(file))).ToList();
         return new LiveItem(item.Id, presentation.Folder, null, presentation.Title, slides, ShowTitle: false, state.Note);
     }
 }

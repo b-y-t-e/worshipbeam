@@ -38,6 +38,12 @@ public sealed record LiveState(
 {
     public static readonly LiveState Empty = new(0, null, 0, false, null);
 
+    /// <summary>Stan osiągnięty poleceniem „Wstecz” lub „Poprzednia pozycja”.</summary>
+    public bool IsBackwardNavigation { get; init; }
+
+    /// <summary>Stan opublikowany po odświeżeniu planu.</summary>
+    public bool IsPlaylistRefresh { get; init; }
+
     public Slide? Slide => Item is { } item && SlideIndex < item.Slides.Count ? item.Slides[SlideIndex] : null;
 
     /// <summary>Slajd, który pokaże „Dalej” w tej samej pozycji (<c>null</c> = „Dalej” przejdzie do innej pozycji).</summary>
@@ -133,7 +139,7 @@ public sealed class LiveSession : ILiveControl, ILiveStateSource
                 current = current with { Note = updated.Note, Transitions = updated.Transitions, InnerTransitions = updated.InnerTransitions };
             }
         }
-        Publish(current, slideIndex, State.IsBlank);
+        Publish(current, slideIndex, State.IsBlank, isPlaylistRefresh: true);
     }
 
     /// <summary>
@@ -213,9 +219,9 @@ public sealed class LiveSession : ILiveControl, ILiveStateSource
         if (item is null)
             return;
         if (State.SlideIndex > 0 && !WasRemoved(item))
-            Publish(item, State.SlideIndex - 1, State.IsBlank);
+            Publish(item, State.SlideIndex - 1, State.IsBlank, isBackwardNavigation: true);
         else if (Neighbour(item, -1) is { } previous)
-            Publish(previous, Math.Max(0, previous.Slides.Count - 1), State.IsBlank);
+            Publish(previous, Math.Max(0, previous.Slides.Count - 1), State.IsBlank, isBackwardNavigation: true);
     }
 
     /// <summary>Pozycję z ekranu usunięto z planu — jej pozostałe slajdy pomijamy, „Dalej” / „Wstecz” idą do sąsiadów.</summary>
@@ -233,7 +239,7 @@ public sealed class LiveSession : ILiveControl, ILiveStateSource
     public void PreviousItem()
     {
         if (State.Item is { } item && Neighbour(item, -1) is { } previous)
-            Publish(previous, 0, State.IsBlank);
+            Publish(previous, 0, State.IsBlank, isBackwardNavigation: true);
     }
 
     public void GoToSlide(int slideIndex)
@@ -288,10 +294,14 @@ public sealed class LiveSession : ILiveControl, ILiveStateSource
     private static int IndexOf(IReadOnlyList<LiveItem> playlist, Guid id) =>
         playlist.ToList().FindIndex(i => i.PlanItemId == id);
 
-    private void Publish(LiveItem? item, int slideIndex, bool isBlank)
+    private void Publish(LiveItem? item, int slideIndex, bool isBlank, bool isBackwardNavigation = false, bool isPlaylistRefresh = false)
     {
         var removed = item is not null && WasRemoved(item);
-        State = new LiveState(State.Version + 1, item, slideIndex, isBlank, DescribeNext(item, slideIndex, removed), removed);
+        State = new LiveState(State.Version + 1, item, slideIndex, isBlank, DescribeNext(item, slideIndex, removed), removed)
+        {
+            IsBackwardNavigation = isBackwardNavigation,
+            IsPlaylistRefresh = isPlaylistRefresh,
+        };
         StateChanged?.Invoke(this, State);
     }
 

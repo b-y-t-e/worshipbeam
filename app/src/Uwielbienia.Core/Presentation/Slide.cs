@@ -25,7 +25,20 @@ public record Slide(string SectionCode, string Label, IReadOnlyList<SlideLine> L
 /// Animowane GIF-y wstawione na tym slajdzie (<see cref="Slideshows.SlideAnimations"/>); zwykle pusta lista. Rzutnik
 /// rysuje je na obrazie slajdu — slajd pozostaje zwykłym slajdem prezentacji.
 /// </param>
-public sealed record ImageSlide(string ImageFile, int Number, IReadOnlyList<SlideAnimation>? Animations = null)
+/// <param name="Build">
+/// Stan budowy slajdu (ruch elementów — <see cref="SlideBuild"/>), którym jest ten obraz; <c>null</c> = zwykły slajd. Rzutnik
+/// odgrywa ruch prowadzący do tego stanu.
+/// </param>
+/// <param name="Transition">
+/// Przejście z pliku prezentacji prowadzące do tego slajdu (PowerPoint: „Przejścia”) — ma pierwszeństwo przed efektami planu;
+/// <c>null</c> = jak w planie.
+/// </param>
+public sealed record ImageSlide(
+    string ImageFile,
+    int Number,
+    IReadOnlyList<SlideAnimation>? Animations = null,
+    SlideBuildFrame? Build = null,
+    Slideshows.Builds.FileTransition? Transition = null)
     : Slide($"S{Number}", Tr.F("Slajd {0}", Number), [])
 {
     public IReadOnlyList<SlideAnimation> MovingPictures => Animations ?? [];
@@ -33,9 +46,9 @@ public sealed record ImageSlide(string ImageFile, int Number, IReadOnlyList<Slid
     // Porównanie treścią (rekord porównałby odwołanie do listy): ten sam slajd po przebudowie planu zostaje na ekranie.
     public bool Equals(ImageSlide? other) =>
         other is not null && base.Equals(other) && ImageFile == other.ImageFile && Number == other.Number
-        && MovingPictures.SequenceEqual(other.MovingPictures);
+        && MovingPictures.SequenceEqual(other.MovingPictures) && Equals(Build, other.Build) && Equals(Transition, other.Transition);
 
-    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ImageFile, Number, MovingPictures.Count);
+    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ImageFile, Number, MovingPictures.Count, Build);
 }
 
 /// <summary>Film na cały ekran; odtwarza go <see cref="Videos.IVideoPlayer"/>, gdy slajd jest na ekranie.</summary>

@@ -1,0 +1,16 @@
+[package]
+name = "deckcraft-transition-fixtures"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Writes JSON fixtures from DeckCraft's slide transitions (Rust) for the C# port in WorshipBeam"
+
+# Standalone: not part of any workspace above.
+[workspace]
+
+[dependencies]
+# All three revs must stay equal: the DeckCraft revision the C# port follows (UPSTREAM-TRANSITIONS.md).
+deckcraft-anim = { git = "https://github.com/storytold/deckcraft", rev = "f67d07f132609482297a8272a8620e197262a51e" }
+deckcraft-model = { git = "https://github.com/storytold/deckcraft", rev = "f67d07f132609482297a8272a8620e197262a51e" }
+deckcraft-pptx = { git = "https://github.com/storytold/deckcraft", rev = "f67d07f132609482297a8272a8620e197262a51e" }
+serde_json = { version = "1", features = ["float_roundtrip"] }

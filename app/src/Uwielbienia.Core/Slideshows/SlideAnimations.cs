@@ -43,14 +43,18 @@ public static class SlideAnimations
     /// slajdów prezentacji zgadza się z liczbą wyeksportowanych obrazów — inaczej nie wiadomo, który GIF należy do
     /// którego slajdu i lepiej zostawić slajdy nieruchome. Pusty opis też się zapisuje: wtedy wiadomo, że już szukano.
     /// </summary>
-    public static void Export(string presentation, string slidesDir)
+    /// <param name="imagesPerSlide">
+    /// Ile obrazów ma każdy widoczny slajd (ruch elementów — <see cref="SlideBuild"/>: stan po każdym kliknięciu to osobny
+    /// obraz z tymi samymi ruchomymi obrazkami); <c>null</c> = jeden obraz na slajd.
+    /// </param>
+    public static void Export(string presentation, string slidesDir, IReadOnlyList<int>? imagesPerSlide = null)
     {
         var map = new Dictionary<string, List<StoredAnimation>>();
         try
         {
             var slides = ExportedSlides(slidesDir);
             // najpierw same miejsca obrazków — pliki GIF wypakowujemy dopiero, gdy wiadomo, że opis powstanie
-            if (Read(presentation) is { } pictures && pictures.Count == slides.Count)
+            if (Read(presentation) is { } found && PerImage(found, imagesPerSlide) is { } pictures && pictures.Count == slides.Count)
                 Save(presentation, pictures, slides, slidesDir, map);
             File.WriteAllText(Path.Combine(slidesDir, MapFile), JsonSerializer.Serialize(map));
         }
@@ -59,6 +63,16 @@ public static class SlideAnimations
             // Ruchome obrazki to dodatek do slajdów: cokolwiek się tu nie uda (nietypowy albo uszkodzony plik, zajęty
             // folder), slajdy mają działać dalej — zostają nieruchome, jak dotąd.
         }
+    }
+
+    /// <summary>Obrazki slajdów powtórzone dla każdego obrazu slajdu; <c>null</c>, gdy liczba slajdów się nie zgadza.</summary>
+    private static List<List<FoundAnimation>>? PerImage(List<List<FoundAnimation>> slides, IReadOnlyList<int>? imagesPerSlide)
+    {
+        if (imagesPerSlide is null)
+            return slides;
+        if (imagesPerSlide.Count != slides.Count)
+            return null;
+        return slides.SelectMany((pictures, i) => Enumerable.Repeat(pictures, Math.Max(0, imagesPerSlide[i]))).ToList();
     }
 
     /// <summary>Ruchome obrazki slajdów (nazwa pliku PNG → obrazki); pusty słownik, gdy ich nie ma.</summary>

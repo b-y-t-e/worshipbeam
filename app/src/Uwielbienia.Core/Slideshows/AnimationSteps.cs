@@ -82,7 +82,53 @@ public static class AnimationSteps
         }
     }
 
-    private static bool IsOoxml(string file) => Extensions.Contains(Path.GetExtension(file).ToLowerInvariant());
+    /// <summary>
+    /// Ile obrazów daje każdy widoczny slajd po rozwinięciu kroków (kroki + 1); <c>null</c>, gdy plik nie ma kroków.
+    /// </summary>
+    public static IReadOnlyList<int>? ImagesPerSlide(string file)
+    {
+        if (!IsOoxml(file))
+            return null;
+        try
+        {
+            using var zip = ZipFile.OpenRead(file);
+            var package = new Package(zip);
+            if (package.Presentation.Root!.Element(P + "sldIdLst") is not { } slideIds)
+                return null;
+            var slides = SlidesOf(package, slideIds);
+            if (slides.All(s => s.Steps == 0))
+                return null;
+            return slides.Where(s => (string?)s.Slide.Root!.Attribute("show") is not ("0" or "false")).Select(s => s.Steps + 1).ToList();
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Prezentacja ma jakiekolwiek animacje elementów (także same automatyczne, bez kliknięć).</summary>
+    public static bool HasAnimations(string file)
+    {
+        if (!IsOoxml(file))
+            return false;
+        try
+        {
+            using var zip = ZipFile.OpenRead(file);
+            return zip.Entries
+                .Where(e => IsSlidePart(e.FullName))
+                .Any(e =>
+                {
+                    using var stream = e.Open();
+                    return XDocument.Load(stream).Descendants(P + "cTn").Any(c => c.Attribute("presetClass") is not null);
+                });
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    internal static bool IsOoxml(string file) => Extensions.Contains(Path.GetExtension(file).ToLowerInvariant());
 
     private const string SlidePartPrefix = "ppt/slides/slide";
 
@@ -248,7 +294,7 @@ public static class AnimationSteps
         slide.Descendants(P + "cNvPr").FirstOrDefault(c => (string?)c.Attribute("id") == id)?.Parent?.Parent;
 
     /// <summary>Tekst i punktor niewidoczne, ale zajmują miejsce — reszta tekstu nie przeskakuje.</summary>
-    private static void HideParagraphs(XElement shape, int first, int last)
+    internal static void HideParagraphs(XElement shape, int first, int last, bool preserveBulletNumbering = false)
     {
         var paragraphs = shape.Element(P + "txBody")?.Elements(A + "p").ToList() ?? [];
         for (var i = first; i <= last && i < paragraphs.Count; i++)
@@ -270,7 +316,10 @@ public static class AnimationSteps
                 paragraphProperties = new XElement(A + "pPr");
                 paragraph.AddFirst(paragraphProperties);
             }
-            NoBullet(paragraphProperties);
+            if (preserveBulletNumbering)
+                MakeBulletTransparent(paragraphProperties);
+            else
+                NoBullet(paragraphProperties);
         }
     }
 
@@ -287,6 +336,20 @@ public static class AnimationSteps
     }
 
     private static readonly string[] Bullets = ["buNone", "buAutoNum", "buChar", "buBlip"];
+
+    /// <summary>DeckCraft rysuje znak lub numer przezroczystym kolorem, zachowując typ punktora i ciągłość listy.</summary>
+    private static void MakeBulletTransparent(XElement paragraphProperties)
+    {
+        paragraphProperties.Elements().Where(e => e.Name == A + "buClr" || e.Name == A + "buClrTx").Remove();
+        var color = new XElement(A + "buClr",
+            new XElement(A + "srgbClr", new XAttribute("val", "000000"), new XElement(A + "alpha", new XAttribute("val", "0"))));
+        var after = paragraphProperties.Elements().FirstOrDefault(e =>
+            e.Name.LocalName.StartsWith("bu", StringComparison.Ordinal) || e.Name.LocalName is "tabLst" or "defRPr" or "extLst");
+        if (after is not null)
+            after.AddBeforeSelf(color);
+        else
+            paragraphProperties.Add(color);
+    }
 
     private static void NoBullet(XElement paragraphProperties)
     {
@@ -316,24 +379,75 @@ public static class AnimationSteps
     }
 }
 
-/// <summary>Eksport z krokami animacji jako osobnymi slajdami (<see cref="AnimationSteps"/>) — przed właściwym eksporterem.</summary>
-public sealed class AnimationStepsExporter(ISlideExporter inner) : ISlideExporter, ISlideExportVersion
+/// <summary>
+/// Eksport slajdów z ruchem elementów (<see cref="SlideBuild"/>): każdy stan po kliknięciu jako slajd, a obok warstwy
+/// i opis, z których rzutnik odgrywa animacje.
+/// </summary>
+public interface ISlideBuildExporter
 {
-    /// <summary>
-    /// Znacznik eksportu z krokami animacji (pusty = eksport sprzed nich; „kroki” = z nimi, ale bez spacji stojących osobno
-    /// — sklejone słowa, eksport od nowa).
-    /// </summary>
-    public string Current => "kroki-2";
+    bool IsAvailable { get; }
 
-    /// <summary>Eksport sprzed kroków animacji jest nieaktualny tylko dla prezentacji z animacjami.</summary>
+    /// <summary>
+    /// Zapisuje slajdy (<c>slide001.png</c>…) i budowy w <paramref name="outDir"/>; zwraca, ile obrazów ma każdy widoczny
+    /// slajd prezentacji, albo <c>null</c>, gdy prezentacja się do tego nie nadaje (wtedy eksport zwykły).
+    /// </summary>
+    Task<IReadOnlyList<int>?> ExportAsync(string presentation, string outDir, int width, IProgress<string> progress);
+}
+
+/// <summary>
+/// Eksport z animacjami: z ruchem elementów (<see cref="ISlideBuildExporter"/>, gdy jest DeckCraft), a bez niego — z krokami
+/// animacji jako osobnymi slajdami (<see cref="AnimationSteps"/>) przed właściwym eksporterem.
+/// </summary>
+public sealed class AnimationStepsExporter(ISlideExporter inner, ISlideBuildExporter? builds = null) : ISlideExporter, ISlideExportVersion
+{
+    /// <summary>Znacznik eksportu z ruchem elementów.</summary>
+    public const string WithBuilds = "ruch-1";
+
+    /// <summary>
+    /// Znacznik eksportu z animacjami (pusty = eksport sprzed kroków; „kroki” = z nimi, ale bez spacji stojących osobno
+    /// — sklejone słowa, eksport od nowa; <see cref="WithBuilds"/> = z ruchem elementów).
+    /// </summary>
+    public string Current => builds?.IsAvailable == true ? WithBuilds : "kroki-2";
+
+    /// <summary>Eksport w innej wersji jest nieaktualny tylko dla prezentacji z animacjami.</summary>
     public bool IsOutdated(string presentation, string exported) =>
-        exported != Current && AnimationSteps.HasSteps(presentation);
+        exported != Current && (builds?.IsAvailable == true ? AnimationSteps.HasAnimations(presentation) : AnimationSteps.HasSteps(presentation));
 
     public string Name => inner.Name;
 
-    public bool IsAvailable => inner.IsAvailable;
+    public bool IsAvailable => inner.IsAvailable || builds?.IsAvailable == true;
 
     public async Task ExportAsync(string presentation, string outDir, int width, IProgress<string> progress)
+    {
+        if (builds?.IsAvailable == true &&
+            await Task.Run(() => AnimationSteps.HasAnimations(presentation)).ConfigureAwait(false))
+        {
+            try
+            {
+                if (await builds.ExportAsync(presentation, outDir, width, progress).ConfigureAwait(false) is { } images)
+                {
+                    await Task.Run(() =>
+                    {
+                        SlideAnimations.Export(presentation, outDir, images);
+                        SlideFileTransitions.Export(presentation, outDir, images);
+                    }).ConfigureAwait(false);
+                    return;
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // ruch elementów się nie udał — slajdy z krokami jak dotąd
+                ErrorNote?.Invoke(ex);
+            }
+            ClearDirectory(outDir);
+        }
+        await ExportStepsAsync(presentation, outDir, width, progress).ConfigureAwait(false);
+    }
+
+    /// <summary>Błąd eksportu z ruchem (eksport idzie dalej bez niego) — do dziennika błędów.</summary>
+    public Action<Exception>? ErrorNote { get; set; }
+
+    private async Task ExportStepsAsync(string presentation, string outDir, int width, IProgress<string> progress)
     {
         // folder tymczasowy poza outDir (tam mają być tylko slajdy); ta sama nazwa pliku co oryginał
         var temp = Path.Combine(Path.GetTempPath(), "Uwielbienia-" + Guid.NewGuid().ToString("N")[..8]);
@@ -344,21 +458,21 @@ public sealed class AnimationStepsExporter(ISlideExporter inner) : ISlideExporte
             if (!await Task.Run(() => AnimationSteps.TryExpand(presentation, steps)).ConfigureAwait(false))
             {
                 await inner.ExportAsync(presentation, outDir, width, progress).ConfigureAwait(false);
-                await DescribeAnimationsAsync(presentation, outDir).ConfigureAwait(false);
+                await DescribeAsync(presentation, presentation, outDir, null).ConfigureAwait(false);
                 return;
             }
             try
             {
                 await inner.ExportAsync(steps, outDir, width, progress).ConfigureAwait(false);
                 // ruchome obrazki opisuje ten plik, z którego powstały slajdy — numery slajdów muszą się zgadzać
-                await DescribeAnimationsAsync(steps, outDir).ConfigureAwait(false);
+                await DescribeAsync(steps, presentation, outDir, AnimationSteps.ImagesPerSlide(presentation)).ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // przerobiona kopia nie do otwarcia — zwykłe slajdy z oryginału
                 ClearDirectory(outDir);
                 await inner.ExportAsync(presentation, outDir, width, progress).ConfigureAwait(false);
-                await DescribeAnimationsAsync(presentation, outDir).ConfigureAwait(false);
+                await DescribeAsync(presentation, presentation, outDir, null).ConfigureAwait(false);
             }
         }
         finally
@@ -374,9 +488,16 @@ public sealed class AnimationStepsExporter(ISlideExporter inner) : ISlideExporte
         }
     }
 
-    /// <summary>Animowane GIF-y slajdów (<see cref="SlideAnimations"/>) — rzutnik pokazuje je na nieruchomym slajdzie.</summary>
-    private static Task DescribeAnimationsAsync(string presentation, string outDir) =>
-        Task.Run(() => SlideAnimations.Export(presentation, outDir));
+    /// <summary>
+    /// Animowane GIF-y slajdów (<see cref="SlideAnimations"/>, z pliku, z którego powstały slajdy — numery muszą się zgadzać)
+    /// i przejścia slajdów z oryginału (<see cref="SlideFileTransitions"/>; przy krokach — z liczbą obrazów każdego slajdu).
+    /// </summary>
+    private static Task DescribeAsync(string exported, string original, string outDir, IReadOnlyList<int>? imagesPerSlide) =>
+        Task.Run(() =>
+        {
+            SlideAnimations.Export(exported, outDir);
+            SlideFileTransitions.Export(original, outDir, imagesPerSlide);
+        });
 
     private static void ClearDirectory(string directory)
     {

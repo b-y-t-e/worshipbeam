@@ -11,6 +11,14 @@
     <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Wyniki oryginału DeckCraft (Rust) dla DeckCraftAnimTests — generuje tools/deckcraft-anim-fixtures. -->
+    <None Include="Fixtures\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Prezentacje dla DeckCraftTransitionTests (FileTransitions.Read) — buduje tools/deckcraft-transition-fixtures/make_decks.py. -->
+    <None Include="Fixtures\**\*.pptx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Uwielbienia.Core\Uwielbienia.Core.csproj" />
     <ProjectReference Include="..\..\src\Uwielbienia.Link\Uwielbienia.Link.csproj" />
   </ItemGroup>
